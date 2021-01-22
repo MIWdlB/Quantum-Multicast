@@ -1,6 +1,11 @@
 # Quantum-Multicast
 UCLCDTDQT Group Project on multicast quantum communication.
 
+## Resources
+
+### Overleaf
+Our shared overleaf page is https://www.overleaf.com/9113389971gxfgtgbsyyxq.
+
 ## Simulators
 
 ### NetSquid 
