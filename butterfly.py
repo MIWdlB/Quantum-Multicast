@@ -1,6 +1,7 @@
 import netsquid as ns
 from netsquid.components import Channel, QuantumChannel, CombinedChannel
-from netsquid.components import QuantumMemory, QSource, SourceStatus
+from netsquid.components import QuantumMemory
+from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Node, Network
 import pydynaa
 import numpy as np
@@ -9,7 +10,7 @@ from netsquid.qubits.state_sampler import StateSampler
 from netsquid.components.models.delaymodels import FixedDelayModel, FibreDelayModel
 from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 
-from qmulticast.utils.graph import Graph
+from qmulticast.utils import Graph, TwinGraph, ButterflyGraph
 
 ns.set_random_state(seed=123456789)
 
@@ -26,39 +27,12 @@ def init_logs() -> None:
     global logger
     logger = logging.getLogger(__name__)
 
-def build_butterfly() -> Graph:
-    """Create a butterfly graph."""
-    logger.debug("Creating butterfly graph.")
-
-    # We want 5 nodes
-    nodes = {0, 1, 2, 3, 4}
-    butterfly = Graph(nodes)
-
-    # The top left of the bowtie is 0, 1 is below
-    # 2 is the centre
-    # 3 is opposite 0 on the top right
-    # 4 is on the bottom right
-    butterfly.addEdge(start=0, end=1)
-    butterfly.addEdge(start=0, end=2)
-    butterfly.addEdge(start=1, end=2)
-    butterfly.addEdge(start=2, end=3)
-    butterfly.addEdge(start=2, end=4)
-    butterfly.addEdge(start=3, end=4)
-
-    butterfly.showEdges()
-
-    return butterfly
-
-
 def create_network(name: str, graph: Graph):
     """Turn graph into netsquid nodes."""
     logger.debug("Creating Network.")
 
     # First set up NetSquid node objects for each graph node.
     nodes = {node_name: Node(str(node_name)) for node_name in graph.nodes}
-
-    # Set up a state sampler for the |B00> bell state.
-    state_sampler = StateSampler([ks.b00], [1.0])
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
@@ -106,15 +80,25 @@ def create_network(name: str, graph: Graph):
     # Add components to each node
     logger.debug("Adding components to nodes.")
     for node_name, node in nodes.items():
+        logger.debug(f"Node {node_name}")
+
+        num_connections = len(graph.edges[node_name])
+
+        # Set up a state sampler for the |B00> bell state.
+        state_sampler = StateSampler([ks.b00], [1.0])
+
+        node_name = str(node_name)
+
         # Add a quantum memory to each of the nodes.
         qmemory = QuantumMemory(
             f"node-{node_name}-memory",
-            num_positions=2,
-            memory_noise_model=[depolar_noise, depolar_noise],
+            num_positions=num_connections,
+            memory_noise_models=[depolar_noise, depolar_noise],
         )
-        node.add_subcomponent(qmemory, name=f"node-qmemory")
+        network.nodes[node_name].add_subcomponent(qmemory, name=f"node-qmemory")
 
-        # Add a source to each of the nodes.
+        # Add a source to each of the nodes
+        # for each connection!
         qsource = QSource(
             name=f"node-{node_name}-qsource",
             state_sampler=state_sampler,
@@ -122,8 +106,8 @@ def create_network(name: str, graph: Graph):
                 "emission_delay_model": source_delay,
                 "emissions_noise_model": source_noise,
             },
-            num_ports=len(graph.edges[node_name]),
-            status=SourceStatus.External
+            num_ports=2,
+            status=SourceStatus.EXTERNAL
         )
 
             # We can get the ports for the connection by using nework.get_connected_ports
@@ -131,5 +115,5 @@ def create_network(name: str, graph: Graph):
 
 if __name__ == "__main__":
     init_logs()
-    butterfly = build_butterfly()
+    butterfly = ButterflyGraph()
     create_network("butterfly bipartite", butterfly)
