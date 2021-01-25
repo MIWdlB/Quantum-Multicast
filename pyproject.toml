@@ -7,6 +7,11 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+numpy = "^1.19.5"
+scipy = "^1.6.0"
+pandas = "^1.2.1"
+pydynaa = "^0.3.4"
+cysignals = "^1.10.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.800"
