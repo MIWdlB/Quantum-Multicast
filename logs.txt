@@ -1,0 +1,40 @@
+2021-01-25 21:29:10,079:butterfly.py:DEBUG - Creating butterfly graph.
+2021-01-25 21:29:10,079:graph.py:DEBUG - Initialising graph.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding node: 0
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding node: 1
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding node: 2
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding node: 3
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding node: 4
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	0 to 1 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	0 to 2 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	1 to 2 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	2 to 3 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	2 to 4 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Adding undirected edge:
+2021-01-25 21:29:10,080:graph.py:DEBUG - 	3 to 4 with weight: 1.
+2021-01-25 21:29:10,080:graph.py:DEBUG - Printing edges to console.
+2021-01-25 21:29:10,080:butterfly.py:DEBUG - Creating Network.
+2021-01-25 21:29:10,081:butterfly.py:DEBUG - Adding nodes to network.
+2021-01-25 21:29:10,081:butterfly.py:DEBUG - Adding connections.
+2021-01-25 21:29:10,083:butterfly.py:DEBUG - Added connection 0-1.
+2021-01-25 21:29:10,084:butterfly.py:DEBUG - Added connection 0-2.
+2021-01-25 21:29:10,084:butterfly.py:DEBUG - Adding connections.
+2021-01-25 21:29:10,084:butterfly.py:DEBUG - Added connection 1-0.
+2021-01-25 21:29:10,085:butterfly.py:DEBUG - Added connection 1-2.
+2021-01-25 21:29:10,085:butterfly.py:DEBUG - Adding connections.
+2021-01-25 21:29:10,085:butterfly.py:DEBUG - Added connection 2-0.
+2021-01-25 21:29:10,086:butterfly.py:DEBUG - Added connection 2-1.
+2021-01-25 21:29:10,086:butterfly.py:DEBUG - Added connection 2-3.
+2021-01-25 21:29:10,087:butterfly.py:DEBUG - Added connection 2-4.
+2021-01-25 21:29:10,087:butterfly.py:DEBUG - Adding connections.
+2021-01-25 21:29:10,087:butterfly.py:DEBUG - Added connection 3-2.
+2021-01-25 21:29:10,088:butterfly.py:DEBUG - Added connection 3-4.
+2021-01-25 21:29:10,088:butterfly.py:DEBUG - Adding connections.
+2021-01-25 21:29:10,088:butterfly.py:DEBUG - Added connection 4-2.
+2021-01-25 21:29:10,089:butterfly.py:DEBUG - Added connection 4-3.
+2021-01-25 21:29:10,089:butterfly.py:DEBUG - Adding components to nodes.
