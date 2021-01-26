@@ -3,7 +3,13 @@ UCLCDTDQT Group Project on multicast quantum communication.
 
 ## Usage
 
-## Developmen
+## Development
+
+### Graph Class
+
+Defines a basic graph, with nodes and weighted edges. Edges are assumed to be undirected but are stored as two directed edges, with weights defaulting to one.
+
+
 
 ### Poetry
 Poetry is a really nice python dependency manager. It lets you keep track of versions and easily update, unlike pip. 

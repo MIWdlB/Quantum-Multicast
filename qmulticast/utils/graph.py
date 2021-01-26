@@ -47,7 +47,7 @@ class Graph:
         ----------
         start : Hashable
             the name or number of the node to start the edge from
-        end : str
+        end : Hashable
             the name or number of the node to end the edge on
         weight : float, default = 1
             the weight of the edge
