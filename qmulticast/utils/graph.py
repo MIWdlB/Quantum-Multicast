@@ -2,14 +2,15 @@
 
 import logging
 from pprint import pprint
-from typing import Hashable, Set, List
+from typing import Hashable, Dict, List, Set
 
 logger = logging.getLogger(__name__)
+
 
 class Graph:
     """Graph class."""
 
-    def __init__(self, nodes: Set[Hashable] = None):
+    def __init__(self, nodes: Set[Hashable] = set()):
         """Intialise.
 
         Parameters
@@ -18,8 +19,8 @@ class Graph:
             A list of names or numbers for nodes.
         """
         logger.debug("Initialising graph.")
-        self.nodes = set()
-        self.edges = {}
+        self.nodes: Set(str) = set()
+        self.edges: Dict[Hashable, Dict[Hashable, Hashable]] = {}
         self.addNodes(nodes)
 
     def addNode(self, node: Hashable) -> None:
@@ -32,7 +33,7 @@ class Graph:
         self.nodes.add(node)
         self.edges[node] = {}
 
-    def addNodes(self, nodes: List[Hashable]) -> None:
+    def addNodes(self, nodes: Set[Hashable]) -> None:
         """Add multiple nodes."""
         for node in nodes:
             self.addNode(node)
@@ -53,7 +54,7 @@ class Graph:
         directed : bool, defualt = False
             Mark the edge as one directional.
         """
-        prefix = 'un' if directed == False else ''
+        prefix = "un" if directed == False else ""
         logger.debug(f"Adding {prefix}directed edge:")
         logger.debug(f"\t{start} to {end} with weight: {weight}.")
         if not (start in self.nodes and end in self.nodes):

@@ -1,33 +1,38 @@
 import netsquid as ns
-from netsquid.components import Channel, QuantumChannel, CombinedChannel
-from netsquid.components import QuantumMemory
-from netsquid.components.qsource import QSource, SourceStatus
-from netsquid.nodes import Node, Network
-import pydynaa
-import numpy as np
 import netsquid.qubits.ketstates as ks
+import numpy as np
+import pydynaa
+from netsquid.components import (Channel, CombinedChannel, QuantumChannel,
+                                 QuantumMemory)
+from netsquid.components.models.delaymodels import (FibreDelayModel,
+                                                    FixedDelayModel)
+from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
+                                                     FibreLossModel)
+from netsquid.components.qsource import QSource, SourceStatus
+from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
-from netsquid.components.models.delaymodels import FixedDelayModel, FibreDelayModel
-from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 
-from qmulticast.utils import Graph, TwinGraph, ButterflyGraph
+from qmulticast.utils import ButterflyGraph, Graph, TwinGraph
 
 ns.set_random_state(seed=123456789)
 
 
 import logging
+
+
 def init_logs() -> None:
     logging.basicConfig(
-        filename="logs.txt", 
-        filemode="w", 
+        filename="logs.txt",
+        filemode="w",
         format="%(asctime)s:%(filename)s:%(levelname)s - %(message)s",
         level=logging.DEBUG,
-        )
+    )
 
     global logger
     logger = logging.getLogger(__name__)
 
-def create_network(name: str, graph: Graph):
+
+def create_network(name: str, graph: Graph) -> Network:
     """Turn graph into netsquid nodes."""
     logger.debug("Creating Network.")
 
@@ -37,6 +42,9 @@ def create_network(name: str, graph: Graph):
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
     fibre_delay = FibreDelayModel()
+
+    # Set up a state sampler for the |B00> bell state.
+    state_sampler = StateSampler([ks.b00], [1.0])
 
     # Noise models to use for components.
     # TODO find a suitable rate
@@ -51,11 +59,18 @@ def create_network(name: str, graph: Graph):
     network.add_nodes([n for n in nodes.values()])
 
     # Add components to each node
-    for node_name, node in nodes.items():
+    logger.debug("Adding components to nodes.")
+    for node_name, _ in nodes.items():
+        logger.debug(f"Node {node_name}")
+
+        node_connections = graph.edges[node_name]
+
+        # Names need to be strings for NetSquid object names
+        node_name = str(node_name)
 
         # Add channels
         logger.debug("Adding connections.")
-        for end, weight in graph.edges[node_name].items():
+        for end, weight in node_connections.items():
             # need the names as a string for the channel
             node_name = str(node_name)
             end_name = str(end)
@@ -70,32 +85,20 @@ def create_network(name: str, graph: Graph):
                 },
             )
             # This will add unidirectional channels
-            # which is what the Graph class tracks.
+            # which is what the Graph class describes.
             network.add_connection(
                 node_name, end_name, channel_to=qc_channel, label=f"{node_name}-{end}"
             )
             logger.debug(f"Added connection {node_name}-{end}.")
-
-
-    # Add components to each node
-    logger.debug("Adding components to nodes.")
-    for node_name, node in nodes.items():
-        logger.debug(f"Node {node_name}")
-
-        num_connections = len(graph.edges[node_name])
-
-        # Set up a state sampler for the |B00> bell state.
-        state_sampler = StateSampler([ks.b00], [1.0])
-
-        node_name = str(node_name)
+            # We can get the ports for the connection by using nework.get_connected_ports
 
         # Add a quantum memory to each of the nodes.
         qmemory = QuantumMemory(
             f"node-{node_name}-memory",
-            num_positions=num_connections,
-            memory_noise_models=[depolar_noise, depolar_noise],
+            num_positions=len(node_connections),
+            memory_noise_models=[depolar_noise] * len(node_connections),
         )
-        network.nodes[node_name].add_subcomponent(qmemory, name=f"node-qmemory")
+        network.nodes[node_name].add_subcomponent(qmemory, name=f"node-{node_name}-qmemory")
 
         # Add a source to each of the nodes
         # for each connection!
@@ -107,13 +110,17 @@ def create_network(name: str, graph: Graph):
                 "emissions_noise_model": source_noise,
             },
             num_ports=2,
-            status=SourceStatus.EXTERNAL
+            status=SourceStatus.EXTERNAL,
         )
+        network.nodes[node_name].add_subcomponent(qsource, name=f"node-{node_name}-qsource")
 
-            # We can get the ports for the connection by using nework.get_connected_ports
 
+def create_ghz(network: Network) -> None:
+    """Create an entangled graph state."""
+    pass
 
 if __name__ == "__main__":
     init_logs()
-    butterfly = ButterflyGraph()
-    create_network("butterfly bipartite", butterfly)
+    graph = TwinGraph()
+    network = create_network("butterfly bipartite", graph)
+
