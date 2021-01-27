@@ -1,4 +1,4 @@
-from qmulticast.utils.graphlibrary import RepeaterGraph
+from qmulticast.utils.graphlibrary import RepeaterGraph, TriangleGraph
 import netsquid as ns
 import netsquid.qubits.ketstates as ks
 import numpy as np
@@ -71,13 +71,14 @@ def create_network(name: str, graph: Graph) -> Network:
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
 
+        mem_size = len(node_connections) * 2
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         # TODO change this to a processor as in tutorial "A full simulation"
         logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
         qmemory = QuantumMemory(
             name="qmemory",
-            num_positions=len(node_connections) * 2,
+            num_positions=mem_size,
             memory_noise_models=depolar_noise,
         )
         node.add_subcomponent(qmemory)
@@ -155,11 +156,10 @@ def create_network(name: str, graph: Graph) -> Network:
             # Now from the connection we need to redirect the qubit to the
             # qmemory of the recieving node.
             # TODO how do we assing it to an empyty memory slot.
+            mem_size = end_node.qmemory.num_positions - 1
             end_node.ports[in_port].forward_input(
-                end_node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
+                end_node.subcomponents["qmemory"].ports[f"qin{mem_size}"]
             )
-            mem_position += 1
-
     return network
 
 
@@ -191,7 +191,7 @@ def create_ghz(network: Network) -> None:
 if __name__ == "__main__":
     init_logs()
     logger.debug("Starting programme.")
-    graph = TwinGraph()
+    graph = TriangleGraph()
     logger.debug("Created graph.")
     network = create_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")

@@ -2,5 +2,6 @@
 
 from netsquid.components.protocols import NodeProtocol
 
+
 class InputThenDo(NodeProtocol):
     """Class to watch for any change to the memory."""

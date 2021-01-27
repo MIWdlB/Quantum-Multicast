@@ -27,6 +27,9 @@ class BipartiteProtocol(NodeProtocol):
         # TODO make this general for N connections
         self._is_source = source
 
+        self._mem_size = self.node.qmemory.num_positions - 1
+        self._mem_input_port = self.node.qmemory.ports[f"qin{self._mem_size}"]
+
     def run(self):
         """Run the protocol."""
         node = self.node
@@ -48,7 +51,6 @@ class BipartiteProtocol(NodeProtocol):
                     # add wait conditions for multiple inputs
                     # do subprotocols work in parrallel?
 
-                    # What happens when a process triggers?
                     self.node.subcomponents[source_name].trigger()
                     logger.debug("Triggered source.")
                     # import pdb;pdb.set_trace()
@@ -57,12 +59,12 @@ class BipartiteProtocol(NodeProtocol):
             # TODO this assumes we have one for now.
 
             unused_mem = self.node.qmemory.unused_positions
-            logger.debug("Node {self.node.name} waiting for input.")
+            logger.debug(f"Node {self.node.name} waiting for input.")
 
             # for each connection we need a subprotocol.
-            
+
             yield self.await_port_input(self._mem_input_port)
-            input_qubit = self.node.qmemory.peek(mem_pos)
+            input_qubit = self.node.qmemory.peek(self._mem_size)
             logger.debug(f"Got qubit {input_qubit}")
 
         # - move input to available qmemory slot.
