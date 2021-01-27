@@ -1,3 +1,4 @@
+from qmulticast.utils.graphlibrary import RepeaterGraph
 import netsquid as ns
 import netsquid.qubits.ketstates as ks
 import numpy as np
@@ -12,6 +13,7 @@ from netsquid.protocols import Protocol
 from netsquid.examples.entanglenodes import EntangleNodes
 
 from qmulticast.utils import ButterflyGraph, Graph, TwinGraph
+from qmulticast.protocols import BipartiteProtocol
 
 ns.set_random_state(seed=123456789)
 
@@ -92,6 +94,8 @@ def create_network(name: str, graph: Graph) -> Network:
 
         # Add channels
         logger.debug("Adding connections.")
+        # Iterate over memory positions
+        mem_position = 0
         for end, length in node_connections.items():
             # need the names as a string for the channel
             node_name = str(node_name)
@@ -100,7 +104,7 @@ def create_network(name: str, graph: Graph) -> Network:
             edge_name = node_name + "-" + end_name
 
             logger.debug(f"Creating channel 'qchannel-{edge_name}.")
-            qc_channel = CombinedChannel(
+            qc_channel = QuantumChannel(
                 name=f"qchannel-{edge_name}",
                 length=length,
                 models={
@@ -142,15 +146,19 @@ def create_network(name: str, graph: Graph) -> Network:
 
             qsource.ports["qout0"].forward_output(node.ports[out_port])
             # second one goes to the first memory register.
-            qsource.ports["qout1"].connect(node.subcomponents["qmemory"].ports["qin0"])
+            qsource.ports["qout1"].connect(
+                node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
+            )
+            mem_position += 1
 
             logger.debug("Redirecting input port.")
             # Now from the connection we need to redirect the qubit to the
             # qmemory of the recieving node.
             # TODO how do we assing it to an empyty memory slot.
             end_node.ports[in_port].forward_input(
-                end_node.subcomponents["qmemory"].ports["qin"]
+                end_node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
             )
+            mem_position += 1
 
     return network
 
@@ -166,12 +174,26 @@ def create_ghz(network: Network) -> None:
     # Entanglement swap
     # What's the correct way to create a GHZ?
 
-    # Let's try it out with an example
-    print(ns.examples.entanglenodes.__file__)
+    protocols = []
+    for node in network.nodes.values():
+        protocols.append(BipartiteProtocol(node, source=True))
+
+    for protocol in protocols:
+        protocol.start()
+
+    ns.sim_run()
+    # q = network.nodes['0'].qmemory.peek(0)
+    # q1 = network.nodes['0'].qmemory.peek(1)
+
+    # print(q, q1)
 
 
 if __name__ == "__main__":
     init_logs()
+    logger.debug("Starting programme.")
     graph = TwinGraph()
+    logger.debug("Created graph.")
     network = create_network("bipartite-butterfly", graph)
+    logger.debug("Created Network.")
     network = create_ghz(network)
+    logger.debug("GHZ created.")

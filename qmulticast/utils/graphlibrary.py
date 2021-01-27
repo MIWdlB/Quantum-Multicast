@@ -37,3 +37,12 @@ class RepeaterGraph(Graph):
         logger.debug("Creating repeater graph.")
         self.nodes = {0, 1, 2}
         self.edges = {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {1: 1}}
+
+
+class TriangleGraph(Graph):
+    """Three fully connected nodes."""
+
+    def __init__(self):
+        logger.debug("Creating triangle graph.")
+        self.nodes = {0, 1, 2}
+        self.edges = {0: {1: 1, 2: 1}, 1: {0: 1, 2: 1}, 2: {0: 1, 1: 1}}
