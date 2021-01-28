@@ -11,11 +11,11 @@ class ButterflyGraph(Graph):
 
     def __init__(self):
         logger.debug("Creating butterfly graph")
-        self.nodes = {0, 1, 2, 3, 4}
+        self.nodes = {5, 1, 2, 3, 4}
         self.edges = {
-            0: {1: 1, 2: 1},
-            1: {0: 1, 2: 1},
-            2: {0: 1, 1: 1, 3: 1, 4: 1},
+            5: {1: 1, 2: 1},
+            1: {5: 1, 2: 1},
+            2: {5: 1, 1: 1, 3: 1, 4: 1},
             3: {2: 1, 4: 1},
             4: {2: 1, 3: 1},
         }

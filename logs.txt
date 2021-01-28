@@ -1,75 +1,132 @@
-2021-01-27 22:16:12,344:DEBUG:bipartite.py - Starting programme.
-2021-01-27 22:16:12,344:DEBUG:graphlibrary.py - Creating triangle graph.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Created graph.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Creating Network.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Adding nodes to network.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Adding unique components to nodes.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Node: 0.
-2021-01-27 22:16:12,345:DEBUG:bipartite.py - Adding quantum memory 'qmemory-0'
-2021-01-27 22:16:12,346:DEBUG:bipartite.py - Node: 1.
-2021-01-27 22:16:12,346:DEBUG:bipartite.py - Adding quantum memory 'qmemory-1'
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Node: 2.
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Adding quantum memory 'qmemory-2'
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Adding non-unique components to nodes.
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Node: 0
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Adding connections.
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Creating channel 'qchannel-0-1.
-2021-01-27 22:16:12,347:DEBUG:bipartite.py - Adding network connection on edge 0-1.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Adding QSource for connection 'qsource-0'.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Creating channel 'qchannel-0-2.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Adding network connection on edge 0-2.
-2021-01-27 22:16:12,348:DEBUG:bipartite.py - Adding QSource for connection 'qsource-0'.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Node: 1
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Adding connections.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Creating channel 'qchannel-1-0.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Adding network connection on edge 1-0.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Adding QSource for connection 'qsource-1'.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,349:DEBUG:bipartite.py - Creating channel 'qchannel-1-2.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Adding network connection on edge 1-2.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Adding QSource for connection 'qsource-1'.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Node: 2
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Adding connections.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Creating channel 'qchannel-2-0.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Adding network connection on edge 2-0.
-2021-01-27 22:16:12,350:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2'.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Creating channel 'qchannel-2-1.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Adding network connection on edge 2-1.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2'.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Redirecting qsource ports.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Redirecting input port.
-2021-01-27 22:16:12,351:DEBUG:bipartite.py - Created Network.
-2021-01-27 22:16:12,352:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol.
-2021-01-27 22:16:12,352:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol.
-2021-01-27 22:16:12,352:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol.
-2021-01-27 22:16:12,352:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 0.
-2021-01-27 22:16:12,352:DEBUG:bipartiteprotocol.py - Found port out-0-1
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Found port out-0-2
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Node {self.node.name} waiting for input.
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 1.
-2021-01-27 22:16:12,353:DEBUG:bipartiteprotocol.py - Found port out-1-0
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Found port out-1-2
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Node {self.node.name} waiting for input.
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 2.
-2021-01-27 22:16:12,354:DEBUG:bipartiteprotocol.py - Found port out-2-0
-2021-01-27 22:16:12,355:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,355:DEBUG:bipartiteprotocol.py - Found port out-2-1
-2021-01-27 22:16:12,355:DEBUG:bipartiteprotocol.py - Triggered source.
-2021-01-27 22:16:12,355:DEBUG:bipartiteprotocol.py - Node {self.node.name} waiting for input.
-2021-01-27 22:16:12,388:DEBUG:bipartiteprotocol.py - Got qubit [Qubit('qsource-1-0-#1-0')]
-2021-01-27 22:16:12,388:DEBUG:bipartiteprotocol.py - Got qubit [Qubit('qsource-1-2-#1-0')]
-2021-01-27 22:16:12,388:DEBUG:bipartiteprotocol.py - Got qubit [Qubit('qsource-2-1-#1-0')]
-2021-01-27 22:16:12,389:DEBUG:bipartite.py - GHZ created.
+2021-01-28 10:50:09,398:DEBUG:bipartite.py - Starting programme.
+2021-01-28 10:50:09,398:DEBUG:graphlibrary.py - Creating butterfly graph
+2021-01-28 10:50:09,399:DEBUG:bipartite.py - Created graph.
+2021-01-28 10:50:09,399:DEBUG:bipartite.py - Creating Network.
+2021-01-28 10:50:09,400:DEBUG:bipartite.py - Adding nodes to network.
+2021-01-28 10:50:09,400:DEBUG:bipartite.py - Adding unique components to nodes.
+2021-01-28 10:50:09,400:DEBUG:bipartite.py - Node: 1.
+2021-01-28 10:50:09,400:DEBUG:bipartite.py - Adding quantum memory 'qmemory-1'
+2021-01-28 10:50:09,400:DEBUG:bipartite.py - 	size: 5
+2021-01-28 10:50:09,402:DEBUG:bipartite.py - Node: 2.
+2021-01-28 10:50:09,402:DEBUG:bipartite.py - Adding quantum memory 'qmemory-2'
+2021-01-28 10:50:09,402:DEBUG:bipartite.py - 	size: 9
+2021-01-28 10:50:09,403:DEBUG:bipartite.py - Node: 3.
+2021-01-28 10:50:09,404:DEBUG:bipartite.py - Adding quantum memory 'qmemory-3'
+2021-01-28 10:50:09,404:DEBUG:bipartite.py - 	size: 5
+2021-01-28 10:50:09,404:DEBUG:bipartite.py - Node: 4.
+2021-01-28 10:50:09,405:DEBUG:bipartite.py - Adding quantum memory 'qmemory-4'
+2021-01-28 10:50:09,405:DEBUG:bipartite.py - 	size: 5
+2021-01-28 10:50:09,406:DEBUG:bipartite.py - Node: 5.
+2021-01-28 10:50:09,406:DEBUG:bipartite.py - Adding quantum memory 'qmemory-5'
+2021-01-28 10:50:09,406:DEBUG:bipartite.py - 	size: 5
+2021-01-28 10:50:09,407:DEBUG:bipartite.py - Adding non-unique components to nodes.
+2021-01-28 10:50:09,407:DEBUG:bipartite.py - Node: 1
+2021-01-28 10:50:09,407:DEBUG:bipartite.py - Adding connections.
+2021-01-28 10:50:09,407:DEBUG:bipartite.py - Creating channel 'qchannel-1-5.
+2021-01-28 10:50:09,408:DEBUG:bipartite.py - Adding network connection on edge 1-5.
+2021-01-28 10:50:09,408:DEBUG:bipartite.py - Adding QSource for connection 'qsource-1-5'.
+2021-01-28 10:50:09,410:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,410:DEBUG:bipartite.py - Creating channel 'qchannel-1-2.
+2021-01-28 10:50:09,410:DEBUG:bipartite.py - Adding network connection on edge 1-2.
+2021-01-28 10:50:09,411:DEBUG:bipartite.py - Adding QSource for connection 'qsource-1-2'.
+2021-01-28 10:50:09,411:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,411:DEBUG:bipartite.py - Node: 2
+2021-01-28 10:50:09,412:DEBUG:bipartite.py - Adding connections.
+2021-01-28 10:50:09,412:DEBUG:bipartite.py - Creating channel 'qchannel-2-5.
+2021-01-28 10:50:09,412:DEBUG:bipartite.py - Adding network connection on edge 2-5.
+2021-01-28 10:50:09,413:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2-5'.
+2021-01-28 10:50:09,414:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,414:DEBUG:bipartite.py - Creating channel 'qchannel-2-1.
+2021-01-28 10:50:09,415:DEBUG:bipartite.py - Adding network connection on edge 2-1.
+2021-01-28 10:50:09,415:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2-1'.
+2021-01-28 10:50:09,415:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,416:DEBUG:bipartite.py - Creating channel 'qchannel-2-3.
+2021-01-28 10:50:09,416:DEBUG:bipartite.py - Adding network connection on edge 2-3.
+2021-01-28 10:50:09,416:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2-3'.
+2021-01-28 10:50:09,417:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,417:DEBUG:bipartite.py - Creating channel 'qchannel-2-4.
+2021-01-28 10:50:09,417:DEBUG:bipartite.py - Adding network connection on edge 2-4.
+2021-01-28 10:50:09,418:DEBUG:bipartite.py - Adding QSource for connection 'qsource-2-4'.
+2021-01-28 10:50:09,418:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,418:DEBUG:bipartite.py - Node: 3
+2021-01-28 10:50:09,418:DEBUG:bipartite.py - Adding connections.
+2021-01-28 10:50:09,419:DEBUG:bipartite.py - Creating channel 'qchannel-3-2.
+2021-01-28 10:50:09,419:DEBUG:bipartite.py - Adding network connection on edge 3-2.
+2021-01-28 10:50:09,419:DEBUG:bipartite.py - Adding QSource for connection 'qsource-3-2'.
+2021-01-28 10:50:09,420:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,420:DEBUG:bipartite.py - Creating channel 'qchannel-3-4.
+2021-01-28 10:50:09,420:DEBUG:bipartite.py - Adding network connection on edge 3-4.
+2021-01-28 10:50:09,420:DEBUG:bipartite.py - Adding QSource for connection 'qsource-3-4'.
+2021-01-28 10:50:09,421:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,421:DEBUG:bipartite.py - Node: 4
+2021-01-28 10:50:09,421:DEBUG:bipartite.py - Adding connections.
+2021-01-28 10:50:09,421:DEBUG:bipartite.py - Creating channel 'qchannel-4-2.
+2021-01-28 10:50:09,422:DEBUG:bipartite.py - Adding network connection on edge 4-2.
+2021-01-28 10:50:09,422:DEBUG:bipartite.py - Adding QSource for connection 'qsource-4-2'.
+2021-01-28 10:50:09,423:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,423:DEBUG:bipartite.py - Creating channel 'qchannel-4-3.
+2021-01-28 10:50:09,423:DEBUG:bipartite.py - Adding network connection on edge 4-3.
+2021-01-28 10:50:09,423:DEBUG:bipartite.py - Adding QSource for connection 'qsource-4-3'.
+2021-01-28 10:50:09,424:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,424:DEBUG:bipartite.py - Node: 5
+2021-01-28 10:50:09,424:DEBUG:bipartite.py - Adding connections.
+2021-01-28 10:50:09,424:DEBUG:bipartite.py - Creating channel 'qchannel-5-1.
+2021-01-28 10:50:09,424:DEBUG:bipartite.py - Adding network connection on edge 5-1.
+2021-01-28 10:50:09,425:DEBUG:bipartite.py - Adding QSource for connection 'qsource-5-1'.
+2021-01-28 10:50:09,425:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,426:DEBUG:bipartite.py - Creating channel 'qchannel-5-2.
+2021-01-28 10:50:09,426:DEBUG:bipartite.py - Adding network connection on edge 5-2.
+2021-01-28 10:50:09,426:DEBUG:bipartite.py - Adding QSource for connection 'qsource-5-2'.
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting qsource ports.
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Forawrding input for node 1
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 1
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 3
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Forawrding input for node 2
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 1
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 3
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 5
+2021-01-28 10:50:09,427:DEBUG:bipartite.py - Redirecting input port to memory 7
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Forawrding input for node 3
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 1
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 3
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Forawrding input for node 4
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 1
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 3
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Forawrding input for node 5
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 1
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Redirecting input port to memory 3
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Created Network.
+2021-01-28 10:50:09,428:DEBUG:bipartite.py - Adding protocol to node 1
+2021-01-28 10:50:09,429:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol for node 1.
+2021-01-28 10:50:09,429:DEBUG:bipartite.py - Adding protocol to node 2
+2021-01-28 10:50:09,429:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol for node 2.
+2021-01-28 10:50:09,430:DEBUG:bipartite.py - Adding protocol to node 3
+2021-01-28 10:50:09,430:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol for node 3.
+2021-01-28 10:50:09,430:DEBUG:bipartite.py - Adding protocol to node 4
+2021-01-28 10:50:09,430:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol for node 4.
+2021-01-28 10:50:09,431:DEBUG:bipartite.py - Adding protocol to node 5
+2021-01-28 10:50:09,431:DEBUG:bipartiteprotocol.py - Initialising Bipartite protocol for node 5.
+2021-01-28 10:50:09,432:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 1.
+2021-01-28 10:50:09,433:DEBUG:bipartiteprotocol.py - Node: 1 has 5 memory slots.
+2021-01-28 10:50:09,433:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 2.
+2021-01-28 10:50:09,434:DEBUG:bipartiteprotocol.py - Node: 2 has 9 memory slots.
+2021-01-28 10:50:09,434:DEBUG:bipartiteprotocol.py - Found port out-2-5
+2021-01-28 10:50:09,435:DEBUG:bipartiteprotocol.py - Triggered source qsource-2-5.
+2021-01-28 10:50:09,435:DEBUG:bipartiteprotocol.py - Found port out-2-1
+2021-01-28 10:50:09,435:DEBUG:bipartiteprotocol.py - Triggered source qsource-2-1.
+2021-01-28 10:50:09,435:DEBUG:bipartiteprotocol.py - Found port out-2-3
+2021-01-28 10:50:09,436:DEBUG:bipartiteprotocol.py - Triggered source qsource-2-3.
+2021-01-28 10:50:09,436:DEBUG:bipartiteprotocol.py - Found port out-2-4
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Triggered source qsource-2-4.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 3.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Node: 3 has 5 memory slots.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 4.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Node: 4 has 5 memory slots.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Running bipartite protocol on node 5.
+2021-01-28 10:50:09,437:DEBUG:bipartiteprotocol.py - Node: 5 has 5 memory slots.
+2021-01-28 10:50:09,438:DEBUG:bipartite.py - Running sim.
+2021-01-28 10:50:09,438:DEBUG:bipartiteprotocol.py - Got input: memory useage [1]
+2021-01-28 10:50:09,439:DEBUG:bipartiteprotocol.py - Got input: memory useage [1]
+2021-01-28 10:50:09,439:DEBUG:bipartiteprotocol.py - Got input: memory useage [1]
+2021-01-28 10:50:09,439:DEBUG:bipartiteprotocol.py - Got input: memory useage [3]
+2021-01-28 10:50:09,440:DEBUG:bipartite.py - GHZ created.

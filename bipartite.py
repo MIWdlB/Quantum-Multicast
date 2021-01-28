@@ -3,7 +3,12 @@ import netsquid as ns
 import netsquid.qubits.ketstates as ks
 import numpy as np
 import pydynaa
-from netsquid.components import Channel, CombinedChannel, QuantumChannel, QuantumMemory
+from netsquid.components import (
+    Channel,
+    CombinedChannel,
+    QuantumChannel,
+    QuantumProcessor,
+)
 from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
 from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 from netsquid.components.qsource import QSource, SourceStatus
@@ -15,7 +20,7 @@ from netsquid.examples.entanglenodes import EntangleNodes
 from qmulticast.utils import ButterflyGraph, Graph, TwinGraph
 from qmulticast.protocols import BipartiteProtocol
 
-ns.set_random_state(seed=123456789)
+ns.set_random_state(seed=12345678)
 
 
 import logging
@@ -49,10 +54,10 @@ def create_network(name: str, graph: Graph) -> Network:
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = DepolarNoiseModel(depolar_rate=1e-4)
+    depolar_noise = None#DepolarNoiseModel(depolar_rate=1e-21)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = FibreLossModel()
+    fibre_loss = None#FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
@@ -71,12 +76,13 @@ def create_network(name: str, graph: Graph) -> Network:
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
 
-        mem_size = len(node_connections) * 2
+        mem_size = len(node_connections) * 2 + 1
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         # TODO change this to a processor as in tutorial "A full simulation"
         logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
-        qmemory = QuantumMemory(
+        logger.debug(f"\tsize: {mem_size}")
+        qmemory = QuantumProcessor(
             name="qmemory",
             num_positions=mem_size,
             memory_noise_models=depolar_noise,
@@ -101,7 +107,6 @@ def create_network(name: str, graph: Graph) -> Network:
             # need the names as a string for the channel
             node_name = str(node_name)
             end_name = str(end)
-            end_node = network.nodes[end_name]
             edge_name = node_name + "-" + end_name
 
             logger.debug(f"Creating channel 'qchannel-{edge_name}.")
@@ -116,7 +121,7 @@ def create_network(name: str, graph: Graph) -> Network:
             )
 
             logger.debug(f"Adding network connection on edge {edge_name}.")
-            out_port, in_port = network.add_connection(
+            out_port, _ = network.add_connection(
                 node_name,
                 end_name,
                 channel_to=qc_channel,
@@ -126,7 +131,7 @@ def create_network(name: str, graph: Graph) -> Network:
                 port_name_node2=f"in-{edge_name}",
             )
 
-            logger.debug(f"Adding QSource for connection 'qsource-{node_name}'.")
+            logger.debug(f"Adding QSource for connection 'qsource-{edge_name}'.")
             qsource = QSource(
                 name=f"qsource-{edge_name}",
                 state_sampler=state_sampler,
@@ -150,16 +155,28 @@ def create_network(name: str, graph: Graph) -> Network:
             qsource.ports["qout1"].connect(
                 node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
             )
-            mem_position += 1
+            mem_position += 2
 
-            logger.debug("Redirecting input port.")
+    # Now go through each node and assign the port
+    # for the input from each channel.
+    for node_name, node in nodes.items():
+        logger.debug(f"Forawrding input for node {node_name}")
+        mem_position = 1
+        for port in node.ports.values():
+            if "out" in port.name:
+                continue
+            logger.debug("Redirecting input port to memory %s", mem_position)
+
             # Now from the connection we need to redirect the qubit to the
             # qmemory of the recieving node.
             # TODO how do we assing it to an empyty memory slot.
-            mem_size = end_node.qmemory.num_positions - 1
-            end_node.ports[in_port].forward_input(
-                end_node.subcomponents["qmemory"].ports[f"qin{mem_size}"]
+            # import pdb; pdb.set_trace()
+
+            port.forward_input(
+                node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
             )
+            mem_position += 2
+
     return network
 
 
@@ -175,12 +192,18 @@ def create_ghz(network: Network) -> None:
     # What's the correct way to create a GHZ?
 
     protocols = []
+    # import pdb; pdb.set_trace()
     for node in network.nodes.values():
-        protocols.append(BipartiteProtocol(node, source=True))
+        logger.debug("Adding protocol to node %s", node.name)
+        if node.name == "2":
+            protocols.append(BipartiteProtocol(node, source=True))
+        else:
+            protocols.append(BipartiteProtocol(node, source=False))
 
     for protocol in protocols:
         protocol.start()
 
+    logger.debug("Running sim.")
     ns.sim_run()
     # q = network.nodes['0'].qmemory.peek(0)
     # q1 = network.nodes['0'].qmemory.peek(1)
@@ -191,7 +214,7 @@ def create_ghz(network: Network) -> None:
 if __name__ == "__main__":
     init_logs()
     logger.debug("Starting programme.")
-    graph = TriangleGraph()
+    graph = ButterflyGraph()
     logger.debug("Created graph.")
     network = create_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")
