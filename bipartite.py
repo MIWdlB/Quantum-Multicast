@@ -54,10 +54,10 @@ def create_network(name: str, graph: Graph) -> Network:
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = None#DepolarNoiseModel(depolar_rate=1e-21)
+    depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = None#FibreLossModel()
+    fibre_loss = None  # FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
@@ -76,7 +76,7 @@ def create_network(name: str, graph: Graph) -> Network:
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
 
-        mem_size = len(node_connections) * 2 + 1
+        mem_size = len(node_connections) * 2 
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         # TODO change this to a processor as in tutorial "A full simulation"

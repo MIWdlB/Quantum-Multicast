@@ -4,13 +4,21 @@ import logging
 from functools import reduce
 
 from netsquid.protocols import NodeProtocol
+from netsquid.protocols.protocol import Signals
 from netsquid.nodes import Node
-from netsquid.components.instructions import INSTR_EMIT
+from netsquid.components.instructions import INSTR_SWAP
+from netsquid.qubits.qubitapi import fidelity
 
 from qmulticast.protocols.report_input import MoveInput
+from qmulticast.programs import CreateGHZ
+from qmulticast.utils import gen_GHZ_ket
 
 logger = logging.getLogger(__name__)
 
+handler = logging.FileHandler(filename="fidelity-data.txt", mode="w")
+
+res_logger = logging.Logger(name = "results")
+res_logger.addHandler(handler)
 
 class BipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
@@ -23,16 +31,20 @@ class BipartiteProtocol(NodeProtocol):
         logger.debug(f"Initialising Bipartite protocol for node {node.name}.")
         super().__init__(node=node, name=name)
 
-    
-        self.input_ports = [
-            port for port in self.node.qmemory.ports if "qin" in port
-        ]
+        self.input_ports = [port for port in self.node.qmemory.ports if "qin" in port]
         self.input_ports.remove("qin")
         self.input_ports = [
-            port for port in self.input_ports 
-            if int(port.lstrip("qin")) % 2 == 1
-            ]
+            port for port in self.input_ports if int(port.lstrip("qin")) % 2 == 1
+        ]
 
+        self.source_mem = [
+            port for port in self.node.qmemory.ports if "qin" in port
+        ]
+
+        self.source_mem.remove("qin")
+        self.source_mem = [
+            port for port in self.source_mem if int(port.lstrip("qin")) % 2 == 0
+        ]
 
         self.output_ports = [
             port for port in self.node.ports.values() if "out" in port.name
@@ -55,10 +67,9 @@ class BipartiteProtocol(NodeProtocol):
         logger.debug(f"Running bipartite protocol on node {node.name}.")
         logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
 
-        
         while True:
-        # Send from source.
-        # - out to all connection ports.
+            # Send from source.
+            # - out to all connection ports.
             if self._is_source:
                 for port in self.output_ports:
                     logger.debug(f"Found port {port.name}")
@@ -69,17 +80,44 @@ class BipartiteProtocol(NodeProtocol):
                     self.node.subcomponents[source_name].trigger()
                     logger.debug(f"Triggered source {source_name}.")
 
-            # Get input
-            await_any_input = [self.await_port_input(self.node.qmemory.ports[port]) for port in self.input_ports]
-            # if self.node.name == "0":
-            #     import pdb;pdb.set_trace()
-            yield reduce(operator.or_, await_any_input)
-            
-            logger.debug(f"Got input: memory useage {self.node.qmemory.used_positions}")
-            print(f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}")
+                await_all_sources = [
+                    self.await_port_input(
+                        self.node.qmemory.ports[port]) for port in self.source_mem
+                ]
+                yield reduce(operator.and_, await_all_sources)
+
+                logger.debug("Got all memory input from sources.")
+                # Do entanglement
+                bell_qubits = [
+                    pos for pos in self.node.qmemory.used_positions if pos % 2 == 0
+                ]
+                prog = CreateGHZ(bell_qubits)
+                node.subcomponents["qmemory"].execute_program(prog)
+
+                #import pdb; pdb.set_trace()
+                qubits = [self.node.qmemory.peek(pos)[0] for pos in node.qmemory.used_positions]
+                fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+                logger.debug(fidelity_val)
+
+                self.send_signal(Signals.SUCCESS, fidelity_val)
+
+            if not self._is_source:
+                # Get input
+                await_any_input = [
+                    self.await_port_input(
+                        self.node.qmemory.ports[port]) for port in self.input_ports
+                ]
+                await_all_signals = []
+                # if self.node.name == "0":
+                #     import pdb;pdb.set_trace()
+                yield reduce(operator.or_, await_any_input)
+
+                res_logger.debug(f"Got input: memory useage {self.node.qmemory.used_positions}")
+                print(
+                    f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
+                )
 
             # Entangle inputs with INSTR_SWAP
-
 
         # while True:
         #     for mem_pos in self.node.qmemory.:
