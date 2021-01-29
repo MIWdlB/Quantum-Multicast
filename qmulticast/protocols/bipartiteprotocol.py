@@ -1,33 +1,47 @@
 """Defines the protocol to be followed at a node bipartite source(s)"""
-import operator
 import logging
+import operator
 from functools import reduce
+from typing import Optional
 
+from netsquid.components.instructions import INSTR_SWAP
+from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
-from netsquid.nodes import Node
-from netsquid.components.instructions import INSTR_SWAP
-from netsquid.qubits.qubitapi import fidelity
+from netsquid.qubits.qubitapi import fidelity, reduced_dm
 
-from qmulticast.protocols.report_input import MoveInput
 from qmulticast.programs import CreateGHZ
+from qmulticast.protocols.report_input import MoveInput
 from qmulticast.utils import gen_GHZ_ket
 
 logger = logging.getLogger(__name__)
 
 handler = logging.FileHandler(filename="fidelity-data.txt", mode="w")
 
-res_logger = logging.Logger(name = "results")
+res_logger = logging.Logger(name="results")
 res_logger.addHandler(handler)
+
 
 class BipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
 
-    First draft I'll assum it's the twin graph
+    If the node is a source, send out entangled qubits and transform to GHZ.
+    If the node is a reciever, await incoming qubit and classical message.
     """
 
-    def __init__(self, node: Node, name=None, source: bool = False):
-        """Initialise the protocol wiht information about the node."""
+    def __init__(self, node: Node, name: Optional[str] = None, source: bool = False):
+        """Initialise the protocol wiht information about the node.
+
+        Parameters
+        ----------
+        node : Node
+            The node on which to run this protocol.
+        name : Optional[str]
+            The name of this protocol.
+        source : bool, default = True
+            Whether this node should act as a source.
+            If not the node is a reciever.
+        """
         logger.debug(f"Initialising Bipartite protocol for node {node.name}.")
         super().__init__(node=node, name=name)
 
@@ -37,9 +51,7 @@ class BipartiteProtocol(NodeProtocol):
             port for port in self.input_ports if int(port.lstrip("qin")) % 2 == 1
         ]
 
-        self.source_mem = [
-            port for port in self.node.qmemory.ports if "qin" in port
-        ]
+        self.source_mem = [port for port in self.node.qmemory.ports if "qin" in port]
 
         self.source_mem.remove("qin")
         self.source_mem = [
@@ -67,9 +79,10 @@ class BipartiteProtocol(NodeProtocol):
         logger.debug(f"Running bipartite protocol on node {node.name}.")
         logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
 
-        while True:
+        while (counter := 0 < 1) :
             # Send from source.
             # - out to all connection ports.
+            counter += 1
             if self._is_source:
                 for port in self.output_ports:
                     logger.debug(f"Found port {port.name}")
@@ -81,8 +94,8 @@ class BipartiteProtocol(NodeProtocol):
                     logger.debug(f"Triggered source {source_name}.")
 
                 await_all_sources = [
-                    self.await_port_input(
-                        self.node.qmemory.ports[port]) for port in self.source_mem
+                    self.await_port_input(self.node.qmemory.ports[port])
+                    for port in self.source_mem
                 ]
                 yield reduce(operator.and_, await_all_sources)
 
@@ -94,45 +107,31 @@ class BipartiteProtocol(NodeProtocol):
                 prog = CreateGHZ(bell_qubits)
                 node.subcomponents["qmemory"].execute_program(prog)
 
-                #import pdb; pdb.set_trace()
-                qubits = [self.node.qmemory.peek(pos)[0] for pos in node.qmemory.used_positions]
+                # import pdb; pdb.set_trace()
+                qubits = [
+                    self.node.qmemory.peek(pos)[0]
+                    for pos in node.qmemory.used_positions
+                ]
                 fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-                logger.debug(fidelity_val)
+                logger.debug(f"Fidelity: {fidelity_val}")
+                logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
 
                 self.send_signal(Signals.SUCCESS, fidelity_val)
 
             if not self._is_source:
                 # Get input
                 await_any_input = [
-                    self.await_port_input(
-                        self.node.qmemory.ports[port]) for port in self.input_ports
+                    self.await_port_input(self.node.qmemory.ports[port])
+                    for port in self.input_ports
                 ]
                 await_all_signals = []
                 # if self.node.name == "0":
                 #     import pdb;pdb.set_trace()
                 yield reduce(operator.or_, await_any_input)
 
-                res_logger.debug(f"Got input: memory useage {self.node.qmemory.used_positions}")
-                print(
+                logger.debug(
+                    f"Got input: memory useage {self.node.qmemory.used_positions}"
+                )
+                logger.debug(
                     f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
                 )
-
-            # Entangle inputs with INSTR_SWAP
-
-        # while True:
-        #     for mem_pos in self.node.qmemory.:
-        #         # Iterate in reverse so that input_mem_pos is handled last
-        #         if self._is_source:
-        #             self.node.subcomponents[self._qsource_name].trigger()
-        #         yield self.await_port_input(self._qmem_input_port)
-        #         if mem_pos != self._input_mem_pos:
-        #             self.node.qmemory.execute_instruction(
-        #                 INSTR_SWAP, [self._input_mem_pos, mem_pos]
-        #             )
-        #             if self.node.qmemory.busy:
-        #                 yield self.await_program(self.node.qmemory)
-        #         self.entangled_pairs += 1
-        #         self.send_signal(Signals.SUCCESS, mem_pos)
-
-        # Entangle swap.
-        # - entangle swap with node to ensure that

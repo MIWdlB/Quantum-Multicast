@@ -1,10 +1,13 @@
-"""Protocol to look at a single port and report when it gets input."""
+"""Protocol to look at a single port and report when it gets input.
 
-from netsquid.protocols import NodeProtocol
-from netsquid.nodes import Node
-from netsquid.components.component import Port
+NOT IN USE
+"""
 
 import logging
+
+from netsquid.components.component import Port
+from netsquid.nodes import Node
+from netsquid.protocols import NodeProtocol
 
 logger = logging.getLogger(__name__)
 
