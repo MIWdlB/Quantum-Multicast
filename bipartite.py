@@ -17,7 +17,7 @@ def init_logs() -> None:
     we can get results out in their own file.
     """
     logging.basicConfig(
-        filename="logs.txt",
+        filename="logs.log",
         filemode="w",
         format="%(asctime)s:%(levelname)s:%(filename)s - %(message)s",
         level=logging.DEBUG,

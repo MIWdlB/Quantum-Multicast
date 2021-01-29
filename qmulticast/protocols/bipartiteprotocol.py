@@ -4,14 +4,12 @@ import operator
 from functools import reduce
 from typing import Optional
 
-from netsquid.components.instructions import INSTR_SWAP
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
 
 from qmulticast.programs import CreateGHZ
-from qmulticast.protocols.report_input import MoveInput
 from qmulticast.utils import gen_GHZ_ket
 
 logger = logging.getLogger(__name__)
@@ -79,7 +77,7 @@ class BipartiteProtocol(NodeProtocol):
         logger.debug(f"Running bipartite protocol on node {node.name}.")
         logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
 
-        while (counter := 0 < 1) :
+        while (counter := 0 < 1):
             # Send from source.
             # - out to all connection ports.
             counter += 1
@@ -101,13 +99,15 @@ class BipartiteProtocol(NodeProtocol):
 
                 logger.debug("Got all memory input from sources.")
                 # Do entanglement
+                logger.debug("Adding GHZ creation program.")
                 bell_qubits = [
                     pos for pos in self.node.qmemory.used_positions if pos % 2 == 0
                 ]
                 prog = CreateGHZ(bell_qubits)
+
+                logger.debug("Executing program.")
                 node.subcomponents["qmemory"].execute_program(prog)
 
-                # import pdb; pdb.set_trace()
                 qubits = [
                     self.node.qmemory.peek(pos)[0]
                     for pos in node.qmemory.used_positions
@@ -124,9 +124,6 @@ class BipartiteProtocol(NodeProtocol):
                     self.await_port_input(self.node.qmemory.ports[port])
                     for port in self.input_ports
                 ]
-                await_all_signals = []
-                # if self.node.name == "0":
-                #     import pdb;pdb.set_trace()
                 yield reduce(operator.or_, await_any_input)
 
                 logger.debug(

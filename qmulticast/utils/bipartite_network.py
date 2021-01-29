@@ -6,9 +6,7 @@ TODO maybe make this a subclass of the Network class and build things in init.
 
 import logging
 
-import netsquid as ns
 import netsquid.qubits.ketstates as ks
-import numpy as np
 from netsquid.components import QuantumChannel, QuantumProcessor
 from netsquid.components.models.delaymodels import (FibreDelayModel,
                                                     FixedDelayModel)
@@ -16,7 +14,6 @@ from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
                                                      FibreLossModel)
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
-from netsquid.protocols import Protocol
 from netsquid.qubits.state_sampler import StateSampler
 
 from qmulticast.utils import Graph

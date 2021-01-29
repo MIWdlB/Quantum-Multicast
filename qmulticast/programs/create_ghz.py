@@ -2,13 +2,12 @@
 
 import logging
 import pdb
+from typing import List
 
 from netsquid.components.instructions import INSTR_CNOT, INSTR_MEASURE
 from netsquid.components.qprogram import QuantumProgram
 
 logger = logging.getLogger(__name__)
-
-from typing import List
 
 
 # TODO Use physical gates for noise
@@ -40,6 +39,6 @@ class CreateGHZ(QuantumProgram):
             self.apply(
                 INSTR_MEASURE, qubit, output_key=f"measure-{qubit}", physical=False
             )
-            logger.debug(f"Measurement on qubit %s", qubit)
+            logger.debug(f"Measurement on qubit {qubit}")
 
         yield self.run()

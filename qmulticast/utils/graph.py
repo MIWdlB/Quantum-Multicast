@@ -2,7 +2,7 @@
 
 import logging
 from pprint import pprint
-from typing import Dict, Hashable, List, Set
+from typing import Dict, Hashable, Set
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class Graph:
         prefix = "un" if directed == False else ""
         logger.debug(f"Adding {prefix}directed edge:")
         logger.debug(f"\t{start} to {end} with weight: {weight}.")
-        if not (start in self.nodes and end in self.nodes):
+        if (start in self.nodes and end in self.nodes) is False:
             raise ValueError("You provided a node which does not exist.")
 
         self.edges[start][end] = weight
