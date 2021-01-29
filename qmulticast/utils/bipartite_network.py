@@ -16,7 +16,7 @@ from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
 
-from qmulticast.utils import Graph
+from qmulticast.utils.graph import Graph
 
 logger = logging.getLogger(__name__)
 

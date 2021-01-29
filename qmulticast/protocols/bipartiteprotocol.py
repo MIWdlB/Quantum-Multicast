@@ -108,6 +108,7 @@ class BipartiteProtocol(NodeProtocol):
                 logger.debug("Executing program.")
                 node.subcomponents["qmemory"].execute_program(prog)
 
+                yield self.await_program(self.node.qmemory)
                 qubits = [
                     self.node.qmemory.peek(pos)[0]
                     for pos in node.qmemory.used_positions
