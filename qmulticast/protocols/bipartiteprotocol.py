@@ -27,7 +27,13 @@ class BipartiteProtocol(NodeProtocol):
     If the node is a reciever, await incoming qubit and classical message.
     """
 
-    def __init__(self, node: Node, name: Optional[str] = None, source: bool = False):
+    def __init__(
+        self,
+        node: Node,
+        name: Optional[str] = None,
+        source: bool = False,
+        recipient: bool = True,
+    ):
         """Initialise the protocol wiht information about the node.
 
         Parameters
@@ -43,93 +49,100 @@ class BipartiteProtocol(NodeProtocol):
         logger.debug(f"Initialising Bipartite protocol for node {node.name}.")
         super().__init__(node=node, name=name)
 
-        self.input_ports = [port for port in self.node.qmemory.ports if "qin" in port]
-        self.input_ports.remove("qin")
-        self.input_ports = [
-            port for port in self.input_ports if int(port.lstrip("qin")) % 2 == 1
-        ]
+        self._output = source
+        self._input = recipient
 
-        self.source_mem = [port for port in self.node.qmemory.ports if "qin" in port]
+        if self._output:
+            self.add_subprotocol(BipartiteOutputProtocol(self.node))
 
-        self.source_mem.remove("qin")
-        self.source_mem = [
-            port for port in self.source_mem if int(port.lstrip("qin")) % 2 == 0
-        ]
-
-        self.output_ports = [
-            port for port in self.node.ports.values() if "out" in port.name
-        ]
-
-        self._is_source = source
-        self._mem_size = self.node.qmemory.num_positions
-
-        # for port_num in range(self._mem_size):
-        #     # We assume input memory ports are the odd numbers.
-        #     if port_num % 2 == 1:
-        #         logger.debug("Adding move protocol for port %s", port_num)
-        #         self.add_subprotocol(
-        #             MoveInput(self.node, node.qmemory.ports[f"qin{port_num}"])
-        #         )
+        if self._input:
+            self.add_subprotocol(BipartiteInputProtocol(self.node))
 
     def run(self):
         """Run the protocol."""
         node = self.node
         logger.debug(f"Running bipartite protocol on node {node.name}.")
-        logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
+        self.start_subprotocols()
 
-        while (counter := 0 < 1):
-            # Send from source.
-            # - out to all connection ports.
-            counter += 1
-            if self._is_source:
-                for port in self.output_ports:
-                    logger.debug(f"Found port {port.name}")
-                    edge = port.name.lstrip("out-")
+class BipartiteInputProtocol(NodeProtocol):
+    """ Defines behviour needed when a source expects input qubits."""
 
-                    # Trigger the source
-                    source_name = "qsource-" + edge
-                    self.node.subcomponents[source_name].trigger()
-                    logger.debug(f"Triggered source {source_name}.")
+    def __init__(self, node: Node, name: Optional[str] = None):
+        super().__init__(node=node, name=name)
 
-                await_all_sources = [
-                    self.await_port_input(self.node.qmemory.ports[port])
-                    for port in self.source_mem
-                ]
-                yield reduce(operator.and_, await_all_sources)
+        mem_positions = self.node.qmemory.num_positions
+        mem_ports = self.node.qmemory.ports
+        self.q_in_ports = [mem_ports[f"qin{num}"] for num in range(1, mem_positions, 2)]
 
-                logger.debug("Got all memory input from sources.")
-                # Do entanglement
-                logger.debug("Adding GHZ creation program.")
-                bell_qubits = [
-                    pos for pos in self.node.qmemory.used_positions if pos % 2 == 0
-                ]
-                prog = CreateGHZ(bell_qubits)
+    def run(self):
+        """Protocol for reciver."""
+        # Get input
+        logger.debug(f"Running Input protocol.")
+        await_quantum_input = [
+            self.await_port_input(port) for port in self.q_in_ports
+        ]
 
-                logger.debug("Executing program.")
-                node.subcomponents["qmemory"].execute_program(prog)
+        while True:
+            yield reduce(operator.or_, await_quantum_input)
 
-                yield self.await_program(self.node.qmemory)
-                qubits = [
-                    self.node.qmemory.peek(pos)[0]
-                    for pos in node.qmemory.used_positions
-                ]
-                fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-                logger.debug(f"Fidelity: {fidelity_val}")
-                logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+            logger.debug(f"Got input: memory useage {self.node.qmemory.used_positions}")
+            logger.debug(
+                f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
+            )
 
-                self.send_signal(Signals.SUCCESS, fidelity_val)
+            # What port do i need to access?
+            await_classical_input = [
+                # self.await_port_input()
+            ]
 
-            if not self._is_source:
-                # Get input
-                await_any_input = [
-                    self.await_port_input(self.node.qmemory.ports[port])
-                    for port in self.input_ports
-                ]
-                yield reduce(operator.or_, await_any_input)
 
-                logger.debug(
-                    f"Got input: memory useage {self.node.qmemory.used_positions}"
-                )
-                logger.debug(
-                    f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
-                )
+class BipartiteOutputProtocol(NodeProtocol):
+    """Defines behaviour of node when outputting qubits"""
+
+    def __init__(self, node: Node, name: Optional[str] = None):
+        super().__init__(node=node, name=name)
+
+        mem_positions = self.node.qmemory.num_positions
+        mem_ports = self.node.qmemory.ports
+        self.q_out_ports = [value for key, value in self.node.ports.items() if "qout" in key]
+
+        self.source_mem = [mem_ports[f"qin{num}"] for num in range(0, mem_positions, 2)]
+
+
+    def run(self) -> None:
+        """The protocol to be run by a source node."""
+        logger.debug(f"Running Output protocol.")
+
+        await_all_sources = [
+            self.await_port_input(port) for port in self.source_mem
+        ]
+
+        sources = [f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports]
+
+        for source in sources:
+            # Trigger the source
+            self.node.subcomponents[source].trigger()
+            logger.debug(f"Triggered source {source}.")
+
+        while True:
+                
+            yield reduce(operator.and_, await_all_sources)
+            logger.debug("Got all memory input from sources.")
+            
+            # Do entanglement
+            logger.debug("Defining CreateGHZ program for obtained qubits.")
+            bell_qubits = [pos for pos in self.node.qmemory.used_positions if pos % 2 == 0]
+            prog = CreateGHZ(bell_qubits)
+
+            logger.debug("Executing program.")
+            self.node.subcomponents["qmemory"].execute_program(prog)
+
+            # Wait for the program to finish
+            yield self.await_program(self.node.qmemory)
+
+            qubits = [self.node.qmemory.pop(pos)[0] for pos in self.node.qmemory.used_positions]
+            fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+            logger.debug(f"Fidelity: {fidelity_val}")
+            logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+
+            self.send_signal(Signals.SUCCESS, fidelity_val)

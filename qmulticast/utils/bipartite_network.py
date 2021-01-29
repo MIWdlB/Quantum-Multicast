@@ -7,11 +7,9 @@ TODO maybe make this a subclass of the Network class and build things in init.
 import logging
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import QuantumChannel, QuantumProcessor
-from netsquid.components.models.delaymodels import (FibreDelayModel,
-                                                    FixedDelayModel)
-from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
-                                                     FibreLossModel)
+from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
+from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
+from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
@@ -108,8 +106,9 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
             end_name = str(end)
             edge_name = node_name + "-" + end_name
 
-            logger.debug(f"Creating channel 'qchannel-{edge_name}.")
-            qc_channel = QuantumChannel(
+            # Quantum connection
+            logger.debug(f"Creating quantum channel 'qchannel-{edge_name}.")
+            q_channel = QuantumChannel(
                 name=f"qchannel-{edge_name}",
                 length=length,
                 models={
@@ -119,15 +118,15 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
                 },
             )
 
-            logger.debug(f"Adding network connection on edge {edge_name}.")
+            logger.debug(f"Adding quantum connection on edge {edge_name}.")
             out_port, _ = network.add_connection(
                 node_name,
                 end_name,
-                channel_to=qc_channel,
-                label=edge_name,
+                channel_to=q_channel,
+                label=f"Q-{edge_name}",
                 bidirectional=False,
-                port_name_node1=f"out-{edge_name}",
-                port_name_node2=f"in-{edge_name}",
+                port_name_node1=f"qout-{edge_name}",
+                port_name_node2=f"qin-{edge_name}",
             )
 
             logger.debug(f"Adding QSource for connection 'qsource-{edge_name}'.")
@@ -143,28 +142,46 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
             )
             node.add_subcomponent(qsource)
 
-            # Turns out this is more difficult cause we need to
-            # prevent ourselves overwriting memory
             logger.debug("Redirecting qsource ports.")
-            # Now redirect from the source to the ports
-            # First one goes out to the output port
-
             qsource.ports["qout0"].forward_output(node.ports[out_port])
-            # second one goes to the first memory register.
             qsource.ports["qout1"].connect(
                 node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
             )
             mem_position += 2
 
+            # Classical connection
+            logger.debug(f"Creating classical channel 'cchannel-{edge_name}'.")
+            c_channel = ClassicalChannel(
+                name=f"cchannel-{edge_name}",
+                length=length,
+                models={
+                    "delay_model": fibre_delay,
+                },
+            )
+
+            logger.debug(f"Adding classical connectin on edge {edge_name}.")
+            network.add_connection(
+                node_name,
+                end_name,
+                channel_to=c_channel,
+                label=f"C-{edge_name}",
+                bidirectional=False,
+                port_name_node1=f"cout-{edge_name}",
+                port_name_node2=f"cin-{edge_name}",
+            )
+
     # Now go through each node and assign the port
     # for the input from each channel.
     for node_name, node in nodes.items():
-        logger.debug(f"Forawrding input for node {node_name}")
+        logger.debug(f"Forawrding input for node {node_name}.")
         mem_position = 1
         for port in node.ports.values():
             if "out" in port.name:
                 continue
-            logger.debug("Redirecting input port to memory %s", mem_position)
+            if "cin" in port.name:
+                continue
+
+            logger.debug("Redirecting input port to memory %s.", mem_position)
 
             # Now from the connection we need to redirect the qubit to the
             # qmemory of the recieving node.
