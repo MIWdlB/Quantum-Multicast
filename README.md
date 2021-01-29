@@ -3,13 +3,18 @@ UCLCDTDQT Group Project on multicast quantum communication.
 
 ## Usage
 
-## Development
-
 ### Graph Class
 
-Defines a basic graph, with nodes and weighted edges. Edges are assumed to be undirected but are stored as two directed edges, with weights defaulting to one.
+`utils/graph.py` Defines a basic graph, with nodes and weighted edges. Edges are assumed to be undirected but are stored as two directed edges, with weights defaulting to one.
 
+Examples are given in `utils/graphlibrary.py`.
 
+### Network cration
+
+Given a graph a (bipartite) network can be created using the `create_bipartite_network` function in `utils/bipartite_network.py`.
+This will craete a channel for each directed edge in the graph, with an associated source for each.
+
+## Development
 
 ### Poetry
 Poetry is a really nice python dependency manager. It lets you keep track of versions and easily update, unlike pip. 
