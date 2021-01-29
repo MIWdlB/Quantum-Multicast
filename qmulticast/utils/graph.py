@@ -2,29 +2,43 @@
 
 import logging
 from pprint import pprint
-from typing import Hashable, Dict, List, Set
+from typing import Dict, Hashable, Set
 
 logger = logging.getLogger(__name__)
 
 
 class Graph:
-    """Graph class."""
+    """Graph class.
 
-    def __init__(self, nodes: Set[Hashable] = set()):
+    Properties
+    ----------
+    nodes : Set[Hashable]
+        Nodes with unique names.
+    edges : Dict[Hashble, Dict[Hashable, float]
+        Directed weighted edges starting at each node.
+    """
+
+    def __init__(self, nodes: Set[Hashable] = None) -> None:
         """Intialise.
 
         Parameters
         ----------
-        nodes : list[Hashable], default None
-            A list of names or numbers for nodes.
+        nodes : set[Hashable], default None
+            A set of names or numbers for nodes.
         """
         logger.debug("Initialising graph.")
         self.nodes: Set(str) = set()
-        self.edges: Dict[Hashable, Dict[Hashable, Hashable]] = {}
-        self.addNodes(nodes)
+        self.edges: Dict[Hashable, Dict[Hashable, float]] = {}
+        self.addNodes({node for node in nodes})
 
     def addNode(self, node: Hashable) -> None:
-        """Add a node to the graph."""
+        """Add a node to the graph.
+
+        Parameters
+        ----------
+        node : Hashable
+            A node identifier.
+        """
         logger.debug(f"Adding node: {node}")
         if node in self.nodes:
             logger.error("Node name %s already exists", node)
@@ -34,7 +48,13 @@ class Graph:
         self.edges[node] = {}
 
     def addNodes(self, nodes: Set[Hashable]) -> None:
-        """Add multiple nodes."""
+        """Add multiple nodes.
+
+        Parameters
+        ----------
+        nodes : Set[Hashable]
+            A set of nodes to add.
+        """
         for node in nodes:
             self.addNode(node)
 
@@ -51,13 +71,13 @@ class Graph:
             the name or number of the node to end the edge on
         weight : float, default = 1
             the weight of the edge
-        directed : bool, defualt = False
+        directed : bool, default = False
             Mark the edge as one directional.
         """
         prefix = "un" if directed == False else ""
         logger.debug(f"Adding {prefix}directed edge:")
         logger.debug(f"\t{start} to {end} with weight: {weight}.")
-        if not (start in self.nodes and end in self.nodes):
+        if (start in self.nodes and end in self.nodes) is False:
             raise ValueError("You provided a node which does not exist.")
 
         self.edges[start][end] = weight
@@ -68,7 +88,7 @@ class Graph:
     def showEdges(self) -> None:
         """Print out the edges.
 
-        #TODO maybe make this a graph
+        #TODO make this a graph
         """
         logger.debug("Printing edges to console.")
         pprint(self.edges)

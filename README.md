@@ -24,6 +24,7 @@ Our shared overleaf page is https://www.overleaf.com/9113389971gxfgtgbsyyxq.
 
 ### NetSquid 
 You'll need to make an account at https://netsquid.org/ to access the documentation. Take a look at the tutorials section and the API Reference for NetSquid.
+There is also a [whitepaper](http://arxiv.org/abs/1411.4028)
 
 
 ### SeQUeNCe (Not used)
