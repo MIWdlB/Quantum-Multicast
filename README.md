@@ -16,7 +16,7 @@ Examples are given in `utils/graphlibrary.py`.
 
 ### Network creation
 
-Given a graph a `networke` object can be created using the `create_bipartite_network` function in `utils/bipartite_network.py`.
+Given a graph a `network` object can be created using the `create_bipartite_network` function in `utils/bipartite_network.py`.
 This will create `node` objects foreach node and add a channel for each directed edge in the graph, with an associated source for each outward edge. Nodes are also given `QuantumProcessor` objects with a number of memory slots equal to the number of directed edges to and from the node.
 
 ### Connections & Channels 
@@ -39,4 +39,3 @@ Note that we still need to communicate the results of measurements in this progr
 ### NetSquid 
 You'll need to make an account at https://netsquid.org/ to access the documentation. Take a look at the tutorials section and the API Reference for NetSquid.
 There is also a [whitepaper](http://arxiv.org/abs/1411.4028)
-
