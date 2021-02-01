@@ -16,7 +16,8 @@ from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
 
-from qmulticast.utils.graph import Graph
+from .graph import Graph
+from .functions import gen_GHZ_ket
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +50,8 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
     fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
-    state_sampler = StateSampler([ks.b00], [1.0])
-
+    #state_sampler = StateSampler([ks.b00], [1.0])
+    state_sampler = StateSampler(gen_GHZ_ket(len(nodes)))
     # Noise models to use for components.
     # TODO find a suitable rate
     depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
@@ -142,7 +143,7 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
                     "emission_delay_model": source_delay,
                     "emissions_noise_model": source_noise,
                 },
-                num_ports=2,
+                num_ports=len(graph.nodes),# size of GHZ state? each qubit goes to a out port
                 status=SourceStatus.EXTERNAL,
             )
             node.add_subcomponent(qsource)
@@ -151,7 +152,9 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
             # prevent ourselves overwriting memory
             logger.debug("Redirecting qsource ports.")
             # Now redirect from the source to the ports
+
             # First one goes out to the output port
+
 
             qsource.ports["qout0"].forward_output(node.ports[out_port])
             # second one goes to the first memory register.

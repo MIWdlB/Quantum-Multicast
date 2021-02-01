@@ -84,7 +84,7 @@ class MultipartiteProtocol(NodeProtocol):
             # - out to all connection ports.
             counter += 1
             if self._is_source: 
-                # generate GHZ state n+1
+                # generate GHZ state
                 # keep qubit 0, send rest out
                 for port in self.output_ports:
                     logger.debug(f"Found port {port.name}")
@@ -108,7 +108,7 @@ class MultipartiteProtocol(NodeProtocol):
                 # logger.debug(f"Fidelity: {fidelity_val}")
                 # logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
 
-                self.send_signal(Signals.SUCCESS)
+                self.send_signal(Signals.SUCCESS,self.node.qmemory)
 
             if not self._is_source:
                 # Get input
@@ -125,4 +125,4 @@ class MultipartiteProtocol(NodeProtocol):
                 logger.debug(
                     f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
                 )
-                self.send_signal(Signals.FAIL, self.local_qcount)
+                self.send_signal(Signals.SUCCESS, self.node.qmemory)
