@@ -8,6 +8,7 @@ from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
+from netsquid.components.component import Port
 
 from qmulticast.programs import CreateGHZ
 from qmulticast.utils import gen_GHZ_ket
@@ -74,6 +75,10 @@ class BipartiteInputProtocol(NodeProtocol):
         mem_ports = self.node.qmemory.ports
         self.q_in_ports = [mem_ports[f"qin{num}"] for num in range(1, mem_positions, 2)]
 
+        self.c_in_ports = [port for port in self.node.ports.values() if "cin" in port.name]
+        for port in self.c_in_ports:
+            self.add_subprotocol(DeleteQubitProtocol(node=self.node, port=port))
+
     def run(self):
         """Protocol for reciver."""
         # Get input
@@ -81,6 +86,8 @@ class BipartiteInputProtocol(NodeProtocol):
         await_quantum_input = [
             self.await_port_input(port) for port in self.q_in_ports
         ]
+
+        self.start_subprotocols()
 
         while True:
             yield reduce(operator.or_, await_quantum_input)
@@ -90,10 +97,23 @@ class BipartiteInputProtocol(NodeProtocol):
                 f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
             )
 
-            # What port do i need to access?
-            await_classical_input = [
-                # self.await_port_input()
-            ]
+class DeleteQubitProtocol(NodeProtocol):
+    def __init__(self,node: Node, port: Port, name: Optional[str] = None) -> None:
+        super().__init__(node=node, name=name)
+        self.port = port
+
+    def run(self) -> None:
+        """Wait for input signal and delete qubit as appropriate."""
+        logger.debug(f"Node {self.node.name} listening for delete instructions.")
+        while True:
+            yield self.await_port_input(self.port)
+            message = self.port.rx_input()
+            edge = self.port.name.lstrip("cin-")
+            if message is f"Delete qubit {edge}":
+                qubit = self.node.qmemory.get_matching_qubits('name', f'qsource-{edge}')
+                logger.debug("Node %s deleting qubit %s",self.node.name, qubit)
+                self.node.qmemory.remove(qubit)
+
 
 
 class BipartiteOutputProtocol(NodeProtocol):
@@ -107,7 +127,24 @@ class BipartiteOutputProtocol(NodeProtocol):
         self.q_out_ports = [value for key, value in self.node.ports.items() if "qout" in key]
 
         self.source_mem = [mem_ports[f"qin{num}"] for num in range(0, mem_positions, 2)]
+        self.sources = [f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports]
 
+    def _trigger_all_sources(self) -> None:
+        """Trigger all sources on the node."""
+        logger.debug("Triggering all sources.")
+        
+        for source in self.sources:
+            # Trigger the source
+            self.node.subcomponents[source].trigger()
+            logger.debug(f"Triggered source {source}.")
+        
+    def _send_delete_instr(self) -> None:
+        """Send a classical message to each reciever node."""
+        logger.debug("Sending delete instructions to nodes.")
+        for port_name, port in self.node.ports.items():
+            if "cout" in port_name:
+                edge = port_name.lstrip("cout-")
+                port.tx_output(f"Delete qubit {edge}")
 
     def run(self) -> None:
         """The protocol to be run by a source node."""
@@ -117,15 +154,9 @@ class BipartiteOutputProtocol(NodeProtocol):
             self.await_port_input(port) for port in self.source_mem
         ]
 
-        sources = [f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports]
-
-        for source in sources:
-            # Trigger the source
-            self.node.subcomponents[source].trigger()
-            logger.debug(f"Triggered source {source}.")
-
+        self._trigger_all_sources()
         while True:
-                
+
             yield reduce(operator.and_, await_all_sources)
             logger.debug("Got all memory input from sources.")
             
@@ -146,3 +177,7 @@ class BipartiteOutputProtocol(NodeProtocol):
             logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
 
             self.send_signal(Signals.SUCCESS, fidelity_val)
+
+            self._send_delete_instr()
+            
+            #import pdb; pdb.set_trace()
