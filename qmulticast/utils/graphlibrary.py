@@ -19,6 +19,7 @@ class ButterflyGraph(Graph):
             3: {2: 1, 4: 1},
             4: {2: 1, 3: 1},
         }
+        self.name = "Butterfly graph"
 
 
 class TwinGraph(Graph):
@@ -28,6 +29,7 @@ class TwinGraph(Graph):
         logger.debug("Creating twin graph.")
         self.nodes = {0, 1}
         self.edges = {0: {1: 1}, 1: {0: 1}}
+        self.name = "Twin graph"
 
 
 class RepeaterGraph(Graph):
@@ -37,6 +39,7 @@ class RepeaterGraph(Graph):
         logger.debug("Creating repeater graph.")
         self.nodes = {0, 1, 2}
         self.edges = {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {1: 1}}
+        self.name = "Single repeater graph"
 
 
 class TriangleGraph(Graph):
@@ -46,3 +49,4 @@ class TriangleGraph(Graph):
         logger.debug("Creating triangle graph.")
         self.nodes = {0, 1, 2}
         self.edges = {0: {1: 1, 2: 1}, 1: {0: 1, 2: 1}, 2: {0: 1, 1: 1}}
+        self.name = "Triangle graph"
