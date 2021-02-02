@@ -73,7 +73,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
 
-        mem_size = len(node_connections) * 2
+        mem_size = len(node_connections) * 4
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
