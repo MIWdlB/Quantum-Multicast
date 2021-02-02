@@ -10,4 +10,4 @@ __all__ = [
     RepeaterGraph,
     gen_GHZ_ket,
     create_bipartite_network,
-]
+] 

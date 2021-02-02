@@ -1,6 +1,9 @@
 # Logfiles
 logs.txt
 
+#Plots
+graphplot.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
