@@ -6,7 +6,6 @@ from .graph import Graph
 from .graphlibrary import ButterflyGraph, RepeaterGraph, TwinGraph
 
 __all__ = [
-    Graph,
     ButterflyGraph,
     TwinGraph,
     RepeaterGraph,
@@ -14,4 +13,4 @@ __all__ = [
     fidelity_from_node,
     log_entanglement_rate,
     create_bipartite_network,
-]
+] 
