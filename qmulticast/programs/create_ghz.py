@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # TODO Use physical gates for noise
 class CreateGHZ(QuantumProgram):
-    """Turn the bell states into cool GHZ states"""
+    """Turn the bell states into cool GHZ states."""
 
     default_num_qubits = -1
 

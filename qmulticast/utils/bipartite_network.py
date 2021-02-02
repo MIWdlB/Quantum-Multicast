@@ -13,6 +13,7 @@ from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLoss
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
+from netsquid.util.simlog import get_loggers
 
 from qmulticast.utils.graph import Graph
 
@@ -44,7 +45,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = FibreDelayModel()
+    fibre_delay = None  # FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
@@ -73,7 +74,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
 
-        mem_size = len(node_connections) * 4
+        mem_size = len(node_connections) * 2
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
@@ -138,7 +139,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
                 },
                 num_ports=2,
                 status=SourceStatus.EXTERNAL,
-                output_meta={'edge': edge_name}
+                output_meta={"edge": edge_name},
             )
             node.add_subcomponent(qsource)
 

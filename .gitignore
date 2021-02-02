@@ -1,5 +1,6 @@
 # Logfiles
 logs.txt
+simlogs.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

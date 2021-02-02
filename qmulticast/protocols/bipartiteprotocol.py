@@ -9,8 +9,9 @@ from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from netsquid.components.component import Port
-from netsquid.components.qprogram import QuantumProgram
 from netsquid.components.instructions import INSTR_X
+from netsquid.components.qprogram import QuantumProgram
+from netsquid.util.simlog import get_loggers
 
 from qmulticast.programs import CreateGHZ
 from qmulticast.utils import gen_GHZ_ket
@@ -116,12 +117,12 @@ class ClassicalInputPortProtocol(NodeProtocol):
             logger.debug("Node %s recieved message %s", self.node, message.items)
             edge = self.port.name.lstrip("cin-")
             matching_qubits = self.node.qmemory.get_matching_qubits("edge", value=edge)
-            
+
             if f"GHZ Correction {edge}" in message.items:
                 for qubit in matching_qubits:
-                    prog = QuantumProgram()
-                    prog.apply(INSTR_X, qubit)
-                    self.node.qmemory.execute_program(prog)
+                    #prog = QuantumProgram()
+                    #prog.apply(INSTR_X, qubit)
+                    #self.node.qmemory.execute_program(prog)
                     logger.debug("Corrected qubit %s", qubit.name)
 
             if f"Delete qubit {edge}" in message.items:
@@ -136,13 +137,14 @@ class BipartiteOutputProtocol(NodeProtocol):
     def __init__(self, node: Node, name: Optional[str] = None):
         super().__init__(node=node, name=name)
 
-        mem_positions = self.node.qmemory.num_positions
         mem_ports = self.node.qmemory.ports
         self.q_out_ports = [
             value for key, value in self.node.ports.items() if "qout" in key
         ]
 
-        self.source_mem = [mem_ports[f"qin{num}"] for num in range(0, len(self.q_out_ports)*2, 2)]
+        self.source_mem = [
+            mem_ports[f"qin{num}"] for num in range(0, len(self.q_out_ports) * 2, 2)
+        ]
         self.sources = [
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
@@ -150,6 +152,7 @@ class BipartiteOutputProtocol(NodeProtocol):
     def _trigger_all_sources(self) -> None:
         """Trigger all sources on the node."""
         logger.debug("Triggering all sources.")
+        self.triggered = {source: False for source in self.sources}
 
         for source in self.sources:
             # Trigger the source
@@ -171,6 +174,7 @@ class BipartiteOutputProtocol(NodeProtocol):
             if "measure" in record:
                 # If the measurement is 0 do nothing.
                 if value == [0]:
+                    logger.debug("No correction for measure %s", record)
                     continue
 
                 qubit_no = int(record.lstrip("measure-"))
@@ -188,10 +192,9 @@ class BipartiteOutputProtocol(NodeProtocol):
         """The protocol to be run by a source node."""
         logger.debug(f"Running Output protocol.")
 
-        await_all_sources = [self.await_port_input(port) for port in self.source_mem]
 
-        for index in range(10):
-            print("index: ", index)
+        while True:
+            await_all_sources = [self.await_port_input(port) for port in self.source_mem]
             self._trigger_all_sources()
             yield reduce(operator.and_, await_all_sources)
             logger.debug("Got all memory input from sources.")
@@ -208,30 +211,13 @@ class BipartiteOutputProtocol(NodeProtocol):
 
             self._send_corrections(prog.output)
 
-            #qubits = [self.node.qmemory.peek(pos)[0] for pos in bell_qubits]
-            #fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-            #logger.debug(f"Fidelity: {fidelity_val}")
-            #logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+            # qubits = [self.node.qmemory.peek(pos)[0] for pos in bell_qubits]
+            # fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+            # logger.debug(f"Fidelity: {fidelity_val}")
+            # logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
 
-            #self.send_signal(Signals.SUCCESS, fidelity_val)
+            # self.send_signal(Signals.SUCCESS, fidelity_val)
 
-            #self._send_all_delete()
+            # self._send_all_delete()
+            logger.debug("Clearing local memory.")
             [self.node.qmemory.pop(index) for index in self.node.qmemory.used_positions]
-            await_mem_busy = [
-                self.await_mempos_busy_toggle(self.node.qmemory, [pos]) 
-                for pos in range(0, len(self.q_out_ports)*2, 2)
-            ]
-            yield reduce(operator.and_, await_mem_busy)
-            logger.debug("Memory positions not busy.")
-
-            self._trigger_all_sources()
-
-            # Test down here to see why it won't trigger.
-            yield self.await_timer(1e5)
-            self._trigger_all_sources()
-            logger.debug("Test")
-            #import pdb; pdb.set_trace()
-            # It doesn't have anything n the memories...
-            yield reduce(operator.and_, await_all_sources)
-            print("wait for trigger done.")
-

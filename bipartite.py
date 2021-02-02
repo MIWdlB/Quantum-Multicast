@@ -1,5 +1,6 @@
 import netsquid as ns
 from netsquid.nodes import Network
+from netsquid.util.simlog import get_loggers
 
 from qmulticast.protocols import BipartiteProtocol
 from qmulticast.utils import create_bipartite_network
@@ -23,8 +24,23 @@ def init_logs() -> None:
         level=logging.DEBUG,
     )
 
+    formatter = logging.Formatter(
+        "%(asctime)s:%(levelname)s:%(filename)s - %(message)s"
+    )
+
     global logger
     logger = logging.getLogger(__name__)
+
+    simlogger = logging.getLogger("netsquid")
+    simlogger.setLevel(logging.DEBUG)
+    fhandler = logging.FileHandler("simlogs.txt", mode="w")
+    fhandler.setFormatter(formatter)
+    simlogger.addHandler(fhandler)
+
+    shandler = logging.StreamHandler()
+    shandler.setLevel(logging.WARNING)
+    shandler.setFormatter(formatter)
+    simlogger.addHandler(shandler)
 
 
 def simulate_network(network: Network) -> None:
