@@ -78,37 +78,27 @@ class MultipartiteProtocol(NodeProtocol):
         node = self.node
         logger.debug(f"Running multipartite protocol on node {node.name}.")
         logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
-
-        while (counter := 0 < 1):
+        counter = 0
+        while (counter < 1): #fixed looping issue?
             # Send from source.
             # - out to all connection ports.
             counter += 1
             if self._is_source: 
                 # generate GHZ state
                 # keep qubit 0, send rest out
-                for port in self.output_ports:
-                    logger.debug(f"Found port {port.name}")
-                    edge = port.name.lstrip("out-")
+                self.node.subcomponents[f"qsource-{node.name}"].trigger()
+                logger.debug(f"Triggered source qsource-{node.name}.")
 
-                    # Trigger the source
-                    source_name = "qsource-" + edge
-                    self.node.subcomponents[source_name].trigger()
-                    logger.debug(f"Triggered source {source_name}.")
-
-                await_all_sources = [
-                    self.await_port_input(self.node.qmemory.ports[port])
-                    for port in self.source_mem
-                ]
-                yield reduce(operator.and_, await_all_sources)
+                # there are no imputs?
+                # await_all_sources = [
+                #     self.await_signal(node.qmemory.ports[port])
+                #     for port in self.source_mem
+                # ]
+                # yield reduce(operator.and_, await_all_sources)
 
                 logger.debug("Got all memory input from sources.")
-                # Do entanglement
 
-                # fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-                # logger.debug(f"Fidelity: {fidelity_val}")
-                # logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
-
-                self.send_signal(Signals.SUCCESS,self.node.qmemory)
+                self.send_signal(Signals.SUCCESS) # unused
 
             if not self._is_source:
                 # Get input
@@ -117,12 +107,10 @@ class MultipartiteProtocol(NodeProtocol):
                     for port in self.input_ports
                 ]
                 yield reduce(operator.or_, await_any_input)
+
                 # recive input, forward onto required place
                 
                 logger.debug(
-                    f"Got input: memory useage {self.node.qmemory.used_positions}"
+                    f"Got input: memory useage node: {self.node.name}: {self.node.qmemory.used_positions}"
                 )
-                logger.debug(
-                    f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
-                )
-                self.send_signal(Signals.SUCCESS, self.node.qmemory)
+                self.send_signal(Signals.SUCCESS) # unused

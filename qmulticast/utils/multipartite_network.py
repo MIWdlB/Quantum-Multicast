@@ -91,7 +91,26 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
             num_positions=mem_size,
             memory_noise_models=depolar_noise,
         )
+
         node.add_subcomponent(qmemory)
+
+        logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
+        qsource = QSource(
+            name=f"qsource-{node_name}",
+            state_sampler=state_sampler,
+            models={
+                "emission_delay_model": source_delay,
+                "emissions_noise_model": source_noise,
+            },
+            num_ports=len(graph.nodes),# size of GHZ state? each qubit goes to a out port
+            status=SourceStatus.EXTERNAL,
+        )
+        node.add_subcomponent(qsource)
+        # add first qubit to local mem
+        qsource.ports["qout0"].connect(
+            node.subcomponents["qmemory"].ports[f"qin{0}"]
+        )
+
 
     # We need more than one of some components because of
     # the network topology.
@@ -106,7 +125,8 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
         # Add channels
         logger.debug("Adding connections.")
         # Iterate over memory positions
-        mem_position = 0
+        #mem_position = 0
+        node_output = 1
         for end, length in node_connections.items():
             # need the names as a string for the channel
             node_name = str(node_name)
@@ -134,20 +154,7 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
                 port_name_node1=f"out-{edge_name}",
                 port_name_node2=f"in-{edge_name}",
             )
-
-            logger.debug(f"Adding QSource for connection 'qsource-{edge_name}'.")
-            qsource = QSource(
-                name=f"qsource-{edge_name}",
-                state_sampler=state_sampler,
-                models={
-                    "emission_delay_model": source_delay,
-                    "emissions_noise_model": source_noise,
-                },
-                num_ports=len(graph.nodes),# size of GHZ state? each qubit goes to a out port
-                status=SourceStatus.EXTERNAL,
-            )
-            node.add_subcomponent(qsource)
-
+            #node.add_subcomponent(out_port)
             # Turns out this is more difficult cause we need to
             # prevent ourselves overwriting memory
             logger.debug("Redirecting qsource ports.")
@@ -155,13 +162,11 @@ def create_multipartite_network(name: str, graph: Graph) -> Network:
 
             # First one goes out to the output port
 
-
-            qsource.ports["qout0"].forward_output(node.ports[out_port])
+            #import pdb;pdb.set_trace()
+            node.subcomponents[f"qsource-{node_name}"].ports[f"qout{node_output}"].forward_output(node.ports[out_port])
+            # not same subcomponents
             # second one goes to the first memory register.
-            qsource.ports["qout1"].connect(
-                node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
-            )
-            mem_position += 2
+            node_output += 1
 
     # Now go through each node and assign the port
     # for the input from each channel.
