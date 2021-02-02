@@ -56,8 +56,8 @@ def simulate_network(network: Network,n_source = "0") -> []:
 if __name__ == "__main__":
     init_logs()
     logger.debug("Starting program Multipartite.")
-    graph = TriangleGraph()
-    source = "0"
+    graph = ButterflyGraph()
+    source = "2"
     logger.debug("Created graph.")
     network = create_multipartite_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")
