@@ -79,24 +79,23 @@ class MultipartiteProtocol(NodeProtocol):
         logger.debug(f"Running multipartite protocol on node {node.name}.")
         logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
         counter = 0
-        while (counter < 1): #fixed looping issue?
+        has_triggered = False
+        while (counter < 1): #looping issue?
             # Send from source.
             # - out to all connection ports.
             counter += 1
-            if self._is_source: 
+            if self._is_source and has_triggered==False: 
+
                 # generate GHZ state
                 # keep qubit 0, send rest out
                 self.node.subcomponents[f"qsource-{node.name}"].trigger()
                 logger.debug(f"Triggered source qsource-{node.name}.")
-
+                has_triggered = True
                 # there are no imputs?
-                # await_all_sources = [
-                #     self.await_signal(node.qmemory.ports[port])
-                #     for port in self.source_mem
-                # ]
-                # yield reduce(operator.and_, await_all_sources)
+                #import pdb;pdb.set_trace()
+                yield self.await_port_input(node.qmemory.ports["qin0"])
 
-                logger.debug("Got all memory input from sources.")
+                logger.debug("source got own qubit in memory")
 
                 self.send_signal(Signals.SUCCESS) # unused
 

@@ -6,6 +6,7 @@ from qmulticast.utils import create_multipartite_network
 from qmulticast.utils.graphlibrary import *
 import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils import gen_GHZ_ket
+import numpy as np
 ns.set_random_state(seed=1234567)
 
 import logging
@@ -63,37 +64,13 @@ if __name__ == "__main__":
     logger.debug("Created Network.")
     results = simulate_network(network,source)
     logger.debug("Simulation Finished")
-    # for j in range(5):
-    #     print(j)
-    #     for i in range(10):
-    #         print(network.nodes[f"{j}"].qmemory.peek(i))
-    #     print()
-
-    # i'm sorry this is so ugly
-    if (graph.name == "Butterfly graph"):
-        qubits = []
-        qubits.append( network.nodes['0'].qmemory.peek(3)[0]) # to do with the order that locations are assigned i think
-        qubits.append( network.nodes['1'].qmemory.peek(3)[0]) # needs fixing
-        qubits.append( network.nodes['2'].qmemory.peek(0)[0]) # source node qubit always in pos0
-        qubits.append( network.nodes['3'].qmemory.peek(1)[0]) # 1 =/= 3, not an issue but annoying
-        qubits.append( network.nodes['4'].qmemory.peek(1)[0])
-        print(qubits)
-        qapi.combine_qubits(qubits)
-        # #import pdb; pdb.set_trace()
-        #print(qapi.reduced_dm(qubits))
-        #print(qapi.reduced_dm(new_qubits))
-        print(qapi.fidelity(qubits, gen_GHZ_ket(5), squared=True))
-    elif(graph.name == "Twin graph"):
-        qubits = []
-        qubits.append( network.nodes['0'].qmemory.peek(0)[0])
-        qubits.append( network.nodes['1'].qmemory.peek(1)[0])
-        qapi.combine_qubits(qubits)
-        print(qapi.fidelity(qubits, gen_GHZ_ket(2), squared=True))
-    elif(graph.name == "Triangle graph"):
-        qubits = []
-        qubits.append( network.nodes['0'].qmemory.peek(0)[0])
-        qubits.append( network.nodes['1'].qmemory.peek(1)[0])
-        qubits.append( network.nodes['2'].qmemory.peek(1)[0])
-        print(qubits)
-        print(qapi.fidelity(qubits, gen_GHZ_ket(3), squared=True))
-    print("all done")
+    qubits = []
+    for node in network.nodes.values():
+        mem_pos = node.qmemory.used_positions # goes in a semi random mem location
+        qubits = qubits + node.qmemory.peek(mem_pos)
+    qapi.combine_qubits(qubits)
+    #print(qapi.reduced_dm(qubits))
+    print("fidelity to ghz:"+str(qapi.fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)))
+    not_ghz = np.zeros((2**len(qubits), 1))
+    not_ghz[1,0] = 1 #|0...1>
+    print("fidelity to not ghz:"+str(qapi.fidelity(qubits, not_ghz, squared=True))) # sanity check
