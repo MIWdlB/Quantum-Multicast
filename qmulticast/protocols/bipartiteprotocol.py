@@ -35,7 +35,7 @@ class BipartiteProtocol(NodeProtocol):
         node: Node,
         name: Optional[str] = None,
         source: bool = False,
-        recipient: bool = True,
+        receiver: bool = True,
     ):
         """Initialise the protocol wiht information about the node.
 
@@ -53,13 +53,14 @@ class BipartiteProtocol(NodeProtocol):
         super().__init__(node=node, name=name)
 
         self._output = source
-        self._input = recipient
+        self._input = receiver
 
         if self._output:
             self.add_subprotocol(BipartiteOutputProtocol(self.node))
 
         if self._input:
-            self.add_subprotocol(BipartiteInputProtocol(self.node))
+            pass
+            #self.add_subprotocol(BipartiteInputProtocol(self.node))
 
     def run(self):
         """Run the protocol."""
@@ -147,11 +148,6 @@ class BipartiteOutputProtocol(NodeProtocol):
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
 
-        for source_name in self.sources:
-            source = self.node.subcomponents[source_name]
-            source.status = 1
-            source.frequency = 100
-
     def _trigger_all_sources(self) -> None:
         """Trigger all sources on the node."""
         logger.debug("Triggering all sources.")
@@ -196,9 +192,25 @@ class BipartiteOutputProtocol(NodeProtocol):
         await_all_sources = [self.await_port_input(port) for port in self.source_mem]
 
         while True:
+
+            print(self.node.qmemory.used_positions)
             self._trigger_all_sources()
             yield reduce(operator.and_, await_all_sources)
             logger.debug("Got all memory input from sources.")
+            
+            # print(self.node.qmemory.used_positions)
+            # self._send_all_delete()
+            # yield self.await_timer(1e2)
+            # [self.node.qmemory.pop(index) for index in self.node.qmemory.used_positions]
+            # print(self.node.qmemory.used_positions)
+            # self._trigger_all_sources()
+            # yield reduce(operator.and_, await_all_sources)            
+            
+            print(self.node.qmemory.used_positions)
+            import pdb; pdb.set_trace()
+            self._trigger_all_sources()
+            print(self.node.qmemory.used_positions)
+            yield reduce(operator.and_, await_all_sources)
 
             # Do entanglement
             bell_qubits = [
@@ -212,22 +224,20 @@ class BipartiteOutputProtocol(NodeProtocol):
 
             self._send_corrections(prog.output)
 
-            qubits = [self.node.qmemory.pop(pos)[0] for pos in bell_qubits]
-            fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-            logger.debug(f"Fidelity: {fidelity_val}")
-            logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+            #qubits = [self.node.qmemory.peek(pos)[0] for pos in bell_qubits]
+            #fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+            #logger.debug(f"Fidelity: {fidelity_val}")
+            #logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
 
-            self.send_signal(Signals.SUCCESS, fidelity_val)
+            #self.send_signal(Signals.SUCCESS, fidelity_val)
 
             self._send_all_delete()
             [self.node.qmemory.pop(index) for index in self.node.qmemory.used_positions]
 
-            logger.debug("Waiting.")
-            yield self.await_timer(2e9)
-
             # Test down here to see why it won't trigger.
             self._trigger_all_sources()
             logger.debug("Test")
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             # It doesn't have anything n the memories...
             yield reduce(operator.and_, await_all_sources)
+            print("wait for trigger done")
