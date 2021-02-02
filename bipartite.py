@@ -53,7 +53,7 @@ def simulate_network(network: Network) -> None:
 if __name__ == "__main__":
     init_logs()
     logger.debug("Starting program.")
-    graph = TriangleGraph()
+    graph = ButterflyGraph()
     logger.debug("Created graph.")
     network = create_bipartite_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")

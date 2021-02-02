@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 class CreateGHZ(QuantumProgram):
     """Turn the bell states into cool GHZ states"""
 
+    default_num_qubits = -1
+
     def __init__(self, bell_qubits: List[int]) -> None:
         """Initialise.
 
@@ -23,6 +25,7 @@ class CreateGHZ(QuantumProgram):
             A list of memory positions to act upon.
         """
         super().__init__()
+        # we don't want to do operations on 0.
         self.bell_qubits = bell_qubits[1:]
 
     def program(self) -> None:
@@ -34,6 +37,7 @@ class CreateGHZ(QuantumProgram):
             self.apply(
                 INSTR_CNOT, [0, qubit], physical=False, output_key=f"cnot-{qubit}"
             )
+            logger.debug(f"Applying CNOT 0->{qubit}")
 
         for qubit in self.bell_qubits:
             self.apply(

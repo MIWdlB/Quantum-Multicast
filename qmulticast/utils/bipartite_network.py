@@ -76,7 +76,6 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
         mem_size = len(node_connections) * 2
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
-        # TODO change this to a processor as in tutorial "A full simulation"
         logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
         logger.debug(f"\tsize: {mem_size}")
         qmemory = QuantumProcessor(
@@ -139,6 +138,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
                 },
                 num_ports=2,
                 status=SourceStatus.EXTERNAL,
+                output_meta={'edge': edge_name}
             )
             node.add_subcomponent(qsource)
 
