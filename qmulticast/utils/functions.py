@@ -5,9 +5,9 @@ import logging
 
 import numpy as np
 from netsquid.nodes import Node
-from netsquid.qubits.qubitapi import fidelity, reduced_dm
-from netsquid.qubits.qrepr import convert_to 
 from netsquid.qubits.dmtools import DMRepr
+from netsquid.qubits.qrepr import convert_to
+from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from netsquid.util.simtools import sim_time
 
 logger = logging.getLogger(__name__)
@@ -60,19 +60,20 @@ def fidelity_from_node(source: Node) -> float:
                 "edge", value=recievers[node.name]
             )
             qubits += node.qmemory.peek(mem_pos)
-    
+
     # Bit ugly this walrus but I haven't been able to
     # use it yet and I think it's cute.
-    if (lq:= len(qubits)) - (le:= len(edges)) != 1:
+    if (lq := len(qubits)) - (le := len(edges)) != 1:
         logger.warning("Looks like some GHZ qubits were lost!")
         logger.warning("Number of edges: %s", lq)
         logger.warning("Number of qubits: %s", le)
 
     logger.debug("GHZ Qubit(s) %s", qubits)
     fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-    #dm = convert_to(qubits, DMRepr)
+    # dm = convert_to(qubits, DMRepr)
     logger.info(f"Fidelity: {fidelity_val}")
     logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+
 
 def log_entanglement_rate():
     """Generator to find the entanglement rate."""
@@ -81,8 +82,12 @@ def log_entanglement_rate():
     yield
 
     while True:
-        vals.append(sim_time())
-        diff = vals[-1] - vals[-2]
+        time = sim_time()
+        vals.append(time)
+        logger.debug("Adding time to rate.")
+        # Take mean difference so that we get more 
+        # accurate over time.
+        diff = np.mean(vals[0:-1]-vals[1:-2])
         if diff == 0:
             logger.error("No time has passed - entanglement rate infinite.")
         else:

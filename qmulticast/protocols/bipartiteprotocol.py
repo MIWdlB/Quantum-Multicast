@@ -2,7 +2,6 @@
 import logging
 import operator
 from functools import reduce
-from qmulticast.utils.functions import log_entanglement_rate
 from typing import List, Optional
 
 from netsquid.components.component import Port
@@ -15,7 +14,8 @@ from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from netsquid.util.simlog import get_loggers
 
 from qmulticast.programs import CreateGHZ
-from qmulticast.utils import gen_GHZ_ket, fidelity_from_node
+from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
+from qmulticast.utils.functions import log_entanglement_rate
 
 logger = logging.getLogger(__name__)
 
