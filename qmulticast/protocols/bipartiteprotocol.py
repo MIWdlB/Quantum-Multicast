@@ -120,9 +120,9 @@ class ClassicalInputPortProtocol(NodeProtocol):
 
             if f"GHZ Correction {edge}" in message.items:
                 for qubit in matching_qubits:
-                    #prog = QuantumProgram()
-                    #prog.apply(INSTR_X, qubit)
-                    #self.node.qmemory.execute_program(prog)
+                    prog = QuantumProgram()
+                    prog.apply(INSTR_X, qubit)
+                    self.node.qmemory.execute_program(prog)
                     logger.debug("Corrected qubit %s", qubit.name)
 
             if f"Delete qubit {edge}" in message.items:
