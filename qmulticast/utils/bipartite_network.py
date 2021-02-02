@@ -5,6 +5,7 @@ TODO maybe make this a subclass of the Network class and build things in init.
 """
 
 import logging
+from typing import Hashable, Dict, Any, Tuple
 
 import netsquid.qubits.ketstates as ks
 from netsquid.components import QuantumChannel, QuantumProcessor
@@ -16,12 +17,26 @@ from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
 
-from qmulticast.utils.graph import Graph
+from networkx import DiGraph
 
 logger = logging.getLogger(__name__)
 
+def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
+    """Return the start, end and weight of a nodes edges."""
+    logger.debug("Unpacking edges.")
+    
+    edges = {}
+    for edge in graph.edges.data():
+        start, stop, weight = edge[0], edge[1], edge[2].get('weight', 1)
+        if str(start) != node.name:
+            continue
+        if type(weight) not in [int, float]:
+            raise TypeError("Edge weights must be numeric.")
+        edges[stop] = weight
 
-def create_bipartite_network(name: str, graph: Graph) -> Network:
+    return edges
+        
+def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     """Turn graph into netsquid network.
 
     Give each node a bipatite source for each edge, assign memory
@@ -70,7 +85,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
         # node_name = node.name
         logger.debug(f"Node: {node_name}.")
 
-        node_connections = graph.edges[node_name]
+        node_connections = unpack_edge_values(node, graph)
 
         # Names need to be strings for NetSquid object names
         node_name = str(node_name)
@@ -96,7 +111,7 @@ def create_bipartite_network(name: str, graph: Graph) -> Network:
         # node_name = node.name
         logger.debug(f"Node: {node_name}")
 
-        node_connections = graph.edges[node_name]
+        node_connections = unpack_edge_values(node, graph)
 
         # Add channels
         logger.debug("Adding connections.")
