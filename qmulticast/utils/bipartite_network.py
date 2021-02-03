@@ -8,12 +8,9 @@ import logging
 from typing import Hashable, Dict, Any, Tuple
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import (ClassicalChannel, QuantumChannel,
-                                 QuantumProcessor)
-from netsquid.components.models.delaymodels import (FibreDelayModel,
-                                                    FixedDelayModel)
-from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
-                                                     FibreLossModel)
+from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
+from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
+from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
@@ -23,13 +20,16 @@ from networkx import DiGraph
 
 logger = logging.getLogger(__name__)
 
-def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
+
+def unpack_edge_values(
+    node: str, graph: DiGraph
+) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
     """Return the start, end and weight of a nodes edges."""
     logger.debug("Unpacking edges.")
-    
+
     edges = {}
     for edge in graph.edges.data():
-        start, stop, weight = edge[0], edge[1], edge[2].get('weight', 1)
+        start, stop, weight = edge[0], edge[1], edge[2].get("weight", 1)
         if str(start) != node.name:
             continue
         if type(weight) not in [int, float]:
@@ -37,7 +37,8 @@ def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, D
         edges[stop] = weight
 
     return edges
-        
+
+
 def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     """Turn graph into netsquid network.
 

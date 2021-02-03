@@ -81,10 +81,11 @@ def fidelity_from_node(source: Node) -> float:
         logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
         yield
 
+
 def fidelity_average(fidelity: float):
     """Store values and calculate the average."""
     vals = np.array([])
-    
+
     while True:
         np.append(vals)
         yield np.mean(vals)
@@ -100,9 +101,9 @@ def log_entanglement_rate():
         time = sim_time()
         np.append(vals, time)
         logger.debug("Adding time to rate: %s", time)
-        # Take mean difference so that we get more 
+        # Take mean difference so that we get more
         # accurate over time.
-        diff = np.mean(vals[0:-1]-vals[1:-2])
+        diff = np.mean(vals[0:-1] - vals[1:-2])
         if diff == 0:
             logger.error("No time has passed - entanglement rate infinite.")
         else:
