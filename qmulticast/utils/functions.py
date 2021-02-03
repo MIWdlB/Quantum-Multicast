@@ -65,8 +65,8 @@ def fidelity_from_node(source: Node) -> float:
     # use it yet and I think it's cute.
     if (lq := len(qubits)) - (le := len(edges)) != 1:
         logger.warning("Looks like some GHZ qubits were lost!")
-        logger.warning("Number of edges: %s", lq)
-        logger.warning("Number of qubits: %s", le)
+        logger.warning("Number of edges: %s", le)
+        logger.warning("Number of qubits: %s", lq)
 
     logger.debug("GHZ Qubit(s) %s", qubits)
     fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
