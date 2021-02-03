@@ -50,7 +50,9 @@ def fidelity_from_node(source: Node) -> float:
     recievers = {edge.split("-")[-1]: edge for edge in edges}
     yield
 
+    run = 0
     while True:
+        run +=1
         qubits = []
         for node in network.nodes.values():
             if node is source:
@@ -76,7 +78,7 @@ def fidelity_from_node(source: Node) -> float:
         np.append(vals, fidelity_val)
         mean = np.mean(vals)
         # dm = convert_to(qubits, DMRepr)
-        logger.info(f"Single run Fidelity: {fidelity_val}")
+        logger.info(f"Run {run} Fidelity: {fidelity_val}")
         logger.info(f"Average Fidelity: {mean}")
         logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
         yield

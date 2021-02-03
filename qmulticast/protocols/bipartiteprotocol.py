@@ -83,8 +83,6 @@ class BipartiteInputProtocol(NodeProtocol):
         self.c_in_ports = [
             port for port in self.node.ports.values() if "cin" in port.name
         ]
-        for port in self.c_in_ports:
-            self.add_subprotocol(ClassicalInputPortProtocol(node=self.node, port=port))
 
     def run(self):
         """Protocol for reciver."""
@@ -105,6 +103,7 @@ class BipartiteInputProtocol(NodeProtocol):
 
 
 class ClassicalInputPortProtocol(NodeProtocol):
+    """For listening on classical ports. NOT IN USE."""
     def __init__(self, node: Node, port: Port, name: Optional[str] = None) -> None:
         super().__init__(node=node, name=name)
         self.port = port
@@ -118,13 +117,6 @@ class ClassicalInputPortProtocol(NodeProtocol):
             logger.debug("Node %s recieved message %s", self.node, message.items)
             edge = self.port.name.lstrip("cin-")
             matching_qubits = self.node.qmemory.get_matching_qubits("edge", value=edge)
-
-            if f"GHZ Correction {edge}" in message.items:
-                for qubit in matching_qubits:
-                    prog = QuantumProgram()
-                    prog.apply(INSTR_X, qubit)
-                    self.node.qmemory.execute_program(prog)
-                    logger.debug("Corrected qubit %s", qubit)
 
             if f"Delete qubit {edge}" in message.items:
                 for qubit in matching_qubits:
@@ -170,26 +162,35 @@ class BipartiteOutputProtocol(NodeProtocol):
                 edge = port_name.lstrip("cout-")
                 port.tx_output(f"Delete qubit {edge}")
 
-    def _send_corrections(self, output: dict) -> None:
-        """Send a classical message to correct for GHZ preparation."""
-        logger.debug("Sending corrections to receivers.")
+    def _do_corrections(self, output: dict) -> None:
+        """Correct qubits for GHZ state creation."""
+        logger.debug("Completing corrections.")
+        network = self.node.supercomponent
+
         for record, value in output.items():
             if "measure" in record:
                 # If the measurement is 0 do nothing.
                 if value == [0]:
                     logger.debug("No correction for measure %s", record)
                     continue
-
+                
+                logger.debug("Correcting for measrue %s", record)
                 qubit_no = int(record.lstrip("measure-"))
                 qubit = self.node.qmemory.peek(qubit_no)[0]
 
                 edgenodes = qubit.name.split("-")[1:3]
+                end_name = edgenodes[-1]
                 edge_name = "-".join(edgenodes)
 
-                self.node.ports[f"cout-{edge_name}"].tx_output(
-                    f"GHZ Correction {edge_name}"
+                end_qmemory = network.nodes[end_name].qmemory
+                qubit = end_qmemory.get_matching_qubits("edge", value=edge_name)
+                end_qmemory.execute_instruction(
+                    instruction = INSTR_X,
+                    qubit_mapping = qubit,
+                    physical = False
                 )
-                logger.debug("Sent correction %s on port cout-%s", value, edge_name)
+                
+                logger.debug("Completed correction on node %s", end_name)
 
     def run(self) -> None:
         """The protocol to be run by a source node."""
@@ -214,7 +215,7 @@ class BipartiteOutputProtocol(NodeProtocol):
             yield self.await_program(self.node.qmemory)
             logger.debug("Program complete, output %s.", prog.output)
 
-            self._send_corrections(prog.output)
+            self._do_corrections(prog.output)
 
             next(self.fidelity)
             next(self.log_rate)

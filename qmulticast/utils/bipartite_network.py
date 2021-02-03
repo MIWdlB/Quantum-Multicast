@@ -175,7 +175,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
                 name=f"cchannel-{edge_name}",
                 length=length,
                 models={
-                    "delay_model": fibre_delay,
+                    "delay_model": None,
                 },
             )
 
