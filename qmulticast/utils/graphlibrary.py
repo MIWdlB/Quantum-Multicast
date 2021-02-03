@@ -32,6 +32,7 @@ class TwinGraph(nx.DiGraph):
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
 
+
 class RepeaterGraph(nx.DiGraph):
     """Single repeater."""
 
@@ -41,6 +42,7 @@ class RepeaterGraph(nx.DiGraph):
         edges = {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {1: 1}}
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+
 
 class TriangleGraph(nx.DiGraph):
     """Three fully connected nodes."""

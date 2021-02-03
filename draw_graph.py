@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     graph = ButterflyGraph()
     draw_networkx(graph)
-   # Set margins for the axes so that nodes aren't clipped
+    # Set margins for the axes so that nodes aren't clipped
     ax = plt.gca()
     ax.margins(0.20)
     plt.axis("off")
