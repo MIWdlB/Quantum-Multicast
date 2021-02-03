@@ -2,7 +2,6 @@
 
 from .bipartite_network import create_bipartite_network
 from .functions import fidelity_from_node, gen_GHZ_ket, log_entanglement_rate
-from .graph import Graph
 from .graphlibrary import ButterflyGraph, RepeaterGraph, TwinGraph
 
 __all__ = [

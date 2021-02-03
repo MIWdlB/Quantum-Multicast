@@ -77,14 +77,14 @@ def fidelity_from_node(source: Node) -> float:
 
 def log_entanglement_rate():
     """Generator to find the entanglement rate."""
-    vals = [sim_time()]
+    vals = np.array([sim_time()])
     logger.info("Entanglement rate initialised.")
     yield
 
     while True:
         time = sim_time()
-        vals.append(time)
-        logger.debug("Adding time to rate.")
+        vals += time
+        logger.debug("Adding time to rate: %s", time)
         # Take mean difference so that we get more 
         # accurate over time.
         diff = np.mean(vals[0:-1]-vals[1:-2])
