@@ -214,8 +214,8 @@ class BipartiteOutputProtocol(NodeProtocol):
             yield self.await_program(self.node.qmemory)
             logger.debug("Program complete, output %s.", prog.output)
 
+            yield self.await_timer(1e5)
             self._do_corrections(prog.output)
-
             next(self.fidelity)
 
             # self._send_all_delete()

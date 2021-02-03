@@ -4,6 +4,7 @@
 import logging
 
 import numpy as np
+import netsquid as ns
 from netsquid.nodes import Node
 from netsquid.qubits.dmtools import DMRepr
 from netsquid.qubits.qrepr import convert_to
@@ -90,17 +91,17 @@ def fidelity_from_node(source: Node) -> float:
 
 def log_entanglement_rate():
     """Generator to find the entanglement rate."""
-    vals = np.array([sim_time()])
+    vals = np.array([sim_time(ns.SECOND)])
     logger.info("Entanglement rate initialised.")
     yield
 
     while True:
-        time = sim_time()
+        time = sim_time(ns.SECOND)
         vals = np.append(vals, time)
         logger.debug("Run time: %s", time)
         # Take mean difference so that we get more
         # accurate over time.
-        diff = np.mean(vals[0:-1] - vals[1:])
+        diff = np.mean(vals[1:] - vals[0:-1])
         if diff == 0:
             logger.error("No time has passed - entanglement rate infinite.")
         else:

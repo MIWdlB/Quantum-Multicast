@@ -64,7 +64,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = None  # FibreDelayModel()
+    fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
