@@ -8,9 +8,12 @@ import logging
 from typing import Hashable, Dict, Any, Tuple
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
-from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
-from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
+from netsquid.components import (ClassicalChannel, QuantumChannel,
+                                 QuantumProcessor)
+from netsquid.components.models.delaymodels import (FibreDelayModel,
+                                                    FixedDelayModel)
+from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
+                                                     FibreLossModel)
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler

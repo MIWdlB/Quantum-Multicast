@@ -2,19 +2,20 @@
 import logging
 import operator
 from functools import reduce
-from typing import Optional, List
+from typing import List, Optional
 
+from netsquid.components.component import Port
+from netsquid.components.instructions import INSTR_X
+from netsquid.components.qprogram import QuantumProgram
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
-from netsquid.components.component import Port
-from netsquid.components.instructions import INSTR_X
-from netsquid.components.qprogram import QuantumProgram
 from netsquid.util.simlog import get_loggers
 
 from qmulticast.programs import CreateGHZ
-from qmulticast.utils import gen_GHZ_ket
+from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
+from qmulticast.utils.functions import log_entanglement_rate
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class ClassicalInputPortProtocol(NodeProtocol):
                     prog = QuantumProgram()
                     prog.apply(INSTR_X, qubit)
                     self.node.qmemory.execute_program(prog)
-                    logger.debug("Corrected qubit %s", qubit.name)
+                    logger.debug("Corrected qubit %s", qubit)
 
             if f"Delete qubit {edge}" in message.items:
                 for qubit in matching_qubits:
@@ -148,6 +149,8 @@ class BipartiteOutputProtocol(NodeProtocol):
         self.sources = [
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
+        self.log_rate = log_entanglement_rate()
+        self.fidelity = fidelity_from_node(self.node)
 
     def _trigger_all_sources(self) -> None:
         """Trigger all sources on the node."""
@@ -192,9 +195,11 @@ class BipartiteOutputProtocol(NodeProtocol):
         """The protocol to be run by a source node."""
         logger.debug(f"Running Output protocol.")
 
-
         while True:
-            await_all_sources = [self.await_port_input(port) for port in self.source_mem]
+
+            await_all_sources = [
+                self.await_port_input(port) for port in self.source_mem
+            ]
             self._trigger_all_sources()
             yield reduce(operator.and_, await_all_sources)
             logger.debug("Got all memory input from sources.")
@@ -211,12 +216,8 @@ class BipartiteOutputProtocol(NodeProtocol):
 
             self._send_corrections(prog.output)
 
-            # qubits = [self.node.qmemory.peek(pos)[0] for pos in bell_qubits]
-            # fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-            # logger.debug(f"Fidelity: {fidelity_val}")
-            # logger.debug(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
-
-            # self.send_signal(Signals.SUCCESS, fidelity_val)
+            next(self.fidelity)
+            next(self.log_rate)
 
             # self._send_all_delete()
             logger.debug("Clearing local memory.")

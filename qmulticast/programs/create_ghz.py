@@ -4,7 +4,7 @@ import logging
 import pdb
 from typing import List
 
-from netsquid.components.instructions import INSTR_CNOT, INSTR_MEASURE
+from netsquid.components.instructions import INSTR_CNOT, INSTR_H, INSTR_MEASURE
 from netsquid.components.qprogram import QuantumProgram
 
 logger = logging.getLogger(__name__)
