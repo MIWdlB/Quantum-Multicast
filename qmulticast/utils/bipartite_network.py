@@ -8,12 +8,9 @@ import logging
 from typing import Hashable, Dict, Any, Tuple
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import (ClassicalChannel, QuantumChannel,
-                                 QuantumProcessor)
-from netsquid.components.models.delaymodels import (FibreDelayModel,
-                                                    FixedDelayModel)
-from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
-                                                     FibreLossModel)
+from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
+from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
+from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
@@ -23,13 +20,16 @@ from networkx import DiGraph
 
 logger = logging.getLogger(__name__)
 
-def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
+
+def unpack_edge_values(
+    node: str, graph: DiGraph
+) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
     """Return the start, end and weight of a nodes edges."""
     logger.debug("Unpacking edges.")
-    
+
     edges = {}
     for edge in graph.edges.data():
-        start, stop, weight = edge[0], edge[1], edge[2].get('weight', 1)
+        start, stop, weight = edge[0], edge[1], edge[2].get("weight", 1)
         if str(start) != node.name:
             continue
         if type(weight) not in [int, float]:
@@ -37,7 +37,8 @@ def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, D
         edges[stop] = weight
 
     return edges
-        
+
+
 def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     """Turn graph into netsquid network.
 
@@ -63,17 +64,17 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = None  # FibreDelayModel()
+    fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
+    depolar_noise = DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = None  # FibreLossModel()
+    fibre_loss = FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
@@ -174,7 +175,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
                 name=f"cchannel-{edge_name}",
                 length=length,
                 models={
-                    "delay_model": fibre_delay,
+                    "delay_model": None,
                 },
             )
 
