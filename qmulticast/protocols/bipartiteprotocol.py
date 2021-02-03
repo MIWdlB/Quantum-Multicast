@@ -173,7 +173,7 @@ class BipartiteOutputProtocol(NodeProtocol):
                     logger.debug("No correction for measure %s", record)
                     continue
                 
-                logger.debug("Correcting for measrue %s", record)
+                logger.debug("Correcting for measure %s", record)
                 qubit_no = int(record.lstrip("measure-"))
                 qubit = self.node.qmemory.peek(qubit_no)[0]
 
@@ -183,12 +183,17 @@ class BipartiteOutputProtocol(NodeProtocol):
 
                 end_qmemory = network.nodes[end_name].qmemory
                 qubit = end_qmemory.get_matching_qubits("edge", value=edge_name)
+
+                if len(qubit) == 0:
+                    logger.warning("Could not find qubit on node %s", end_name)
+                    logger.debug("Skipping run.")
+                    continue
+
                 end_qmemory.execute_instruction(
                     instruction = INSTR_X,
                     qubit_mapping = qubit,
                     physical = False
                 )
-                
                 logger.debug("Completed correction on node %s", end_name)
 
     def run(self) -> None:
@@ -214,7 +219,10 @@ class BipartiteOutputProtocol(NodeProtocol):
             yield self.await_program(self.node.qmemory)
             logger.debug("Program complete, output %s.", prog.output)
 
-            yield self.await_timer(1e5)
+            # TODO how do we find the minimum wait time needed in a sensible way?
+            # Could await on ports using
+            #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
+            yield self.await_timer(1e3)
             self._do_corrections(prog.output)
             next(self.fidelity)
 
