@@ -150,6 +150,7 @@ class BipartiteOutputProtocol(NodeProtocol):
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
         self.log_rate = log_entanglement_rate()
+        self.fidelity = fidelity_from_node(self.node)
 
     def _trigger_all_sources(self) -> None:
         """Trigger all sources on the node."""
@@ -194,7 +195,9 @@ class BipartiteOutputProtocol(NodeProtocol):
         """The protocol to be run by a source node."""
         logger.debug(f"Running Output protocol.")
 
-        while True:
+        while counter:= 0 < 10:
+            counter += 1
+
             await_all_sources = [
                 self.await_port_input(port) for port in self.source_mem
             ]
@@ -214,7 +217,7 @@ class BipartiteOutputProtocol(NodeProtocol):
 
             self._send_corrections(prog.output)
 
-            fidelity_from_node(self.node)
+            next(self.fidelity)
             next(self.log_rate)
 
             # self._send_all_delete()

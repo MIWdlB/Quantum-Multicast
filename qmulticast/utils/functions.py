@@ -38,6 +38,7 @@ def fidelity_from_node(source: Node) -> float:
         The node object to treat as source.
     """
     logger.debug(f"Calculating fidelity of GHZ state from source {source}")
+    vals = np.array([])
 
     network = source.supercomponent
 
@@ -47,32 +48,46 @@ def fidelity_from_node(source: Node) -> float:
         if "qsource" in name
     ]
     recievers = {edge.split("-")[-1]: edge for edge in edges}
+    yield
 
-    qubits = []
-    for node in network.nodes.values():
-        if node is source:
-            # Assume that the source has a qubit
-            # and that it's in the 0 position.
-            qubits += node.qmemory.peek(0)
+    while True:
+        qubits = []
+        for node in network.nodes.values():
+            if node is source:
+                # Assume that the source has a qubit
+                # and that it's in the 0 position.
+                qubits += node.qmemory.peek(0)
 
-        if node.name in recievers:
-            mem_pos = node.qmemory.get_matching_qubits(
-                "edge", value=recievers[node.name]
-            )
-            qubits += node.qmemory.peek(mem_pos)
+            if node.name in recievers:
+                mem_pos = node.qmemory.get_matching_qubits(
+                    "edge", value=recievers[node.name]
+                )
+                qubits += node.qmemory.peek(mem_pos)
 
-    # Bit ugly this walrus but I haven't been able to
-    # use it yet and I think it's cute.
-    if (lq := len(qubits)) - (le := len(edges)) != 1:
-        logger.warning("Looks like some GHZ qubits were lost!")
-        logger.warning("Number of edges: %s", le)
-        logger.warning("Number of qubits: %s", lq)
+        # Bit ugly this walrus but I haven't been able to
+        # use it yet and I think it's cute.
+        if (lq := len(qubits)) - (le := len(edges)) != 1:
+            logger.warning("Looks like some GHZ qubits were lost!")
+            logger.warning("Number of edges: %s", le)
+            logger.warning("Number of qubits: %s", lq)
 
-    logger.debug("GHZ Qubit(s) %s", qubits)
-    fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-    # dm = convert_to(qubits, DMRepr)
-    logger.info(f"Fidelity: {fidelity_val}")
-    logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+        logger.debug("GHZ Qubit(s) %s", qubits)
+        fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+        np.append(vals, fidelity_val)
+        mean = np.mean(vals)
+        # dm = convert_to(qubits, DMRepr)
+        logger.info(f"Single run Fidelity: {fidelity_val}")
+        logger.info(f"Average Fidelity: {mean}")
+        logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+        yield
+
+def fidelity_average(fidelity: float):
+    """Store values and calculate the average."""
+    vals = np.array([])
+    
+    while True:
+        np.append(vals)
+        yield np.mean(vals)
 
 
 def log_entanglement_rate():
@@ -83,7 +98,7 @@ def log_entanglement_rate():
 
     while True:
         time = sim_time()
-        vals += time
+        np.append(vals, time)
         logger.debug("Adding time to rate: %s", time)
         # Take mean difference so that we get more 
         # accurate over time.
