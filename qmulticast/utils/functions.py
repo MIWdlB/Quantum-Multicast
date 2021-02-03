@@ -48,6 +48,8 @@ def fidelity_from_node(source: Node) -> float:
         if "qsource" in name
     ]
     recievers = {edge.split("-")[-1]: edge for edge in edges}
+
+    rate = log_entanglement_rate()
     yield
 
     run = 0
@@ -75,22 +77,15 @@ def fidelity_from_node(source: Node) -> float:
 
         logger.debug("GHZ Qubit(s) %s", qubits)
         fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-        np.append(vals, fidelity_val)
+        vals = np.append(vals, fidelity_val)
         mean = np.mean(vals)
         # dm = convert_to(qubits, DMRepr)
         logger.info(f"Run {run} Fidelity: {fidelity_val}")
         logger.info(f"Average Fidelity: {mean}")
         logger.info(f"Reduced dm of qubits: \n{reduced_dm(qubits)}")
+        next(rate)
         yield
 
-
-def fidelity_average(fidelity: float):
-    """Store values and calculate the average."""
-    vals = np.array([])
-
-    while True:
-        np.append(vals)
-        yield np.mean(vals)
 
 
 def log_entanglement_rate():
@@ -101,11 +96,11 @@ def log_entanglement_rate():
 
     while True:
         time = sim_time()
-        np.append(vals, time)
-        logger.debug("Adding time to rate: %s", time)
+        vals = np.append(vals, time)
+        logger.debug("Run time: %s", time)
         # Take mean difference so that we get more
         # accurate over time.
-        diff = np.mean(vals[0:-1] - vals[1:-2])
+        diff = np.mean(vals[0:-1] - vals[1:])
         if diff == 0:
             logger.error("No time has passed - entanglement rate infinite.")
         else:

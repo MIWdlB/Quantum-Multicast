@@ -141,7 +141,6 @@ class BipartiteOutputProtocol(NodeProtocol):
         self.sources = [
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
-        self.log_rate = log_entanglement_rate()
         self.fidelity = fidelity_from_node(self.node)
 
     def _trigger_all_sources(self) -> None:
@@ -218,7 +217,6 @@ class BipartiteOutputProtocol(NodeProtocol):
             self._do_corrections(prog.output)
 
             next(self.fidelity)
-            next(self.log_rate)
 
             # self._send_all_delete()
             logger.debug("Clearing local memory.")
