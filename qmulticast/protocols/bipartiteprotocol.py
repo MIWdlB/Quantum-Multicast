@@ -195,8 +195,7 @@ class BipartiteOutputProtocol(NodeProtocol):
         """The protocol to be run by a source node."""
         logger.debug(f"Running Output protocol.")
 
-        while counter:= 0 < 10:
-            counter += 1
+        while True:
 
             await_all_sources = [
                 self.await_port_input(port) for port in self.source_mem
