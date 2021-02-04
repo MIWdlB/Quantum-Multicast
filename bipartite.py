@@ -59,16 +59,16 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
         for node in network.nodes.values():
             logger.debug("Adding protocol to node %s", node.name)
             if node.name == source_val:
-                protocols.append(BipartiteProtocol(node, source=True))
+                protocols.append(BipartiteProtocol(node, source=True,receiver = False))
             else:
-                protocols.append(BipartiteProtocol(node, source=False))
+                protocols.append(BipartiteProtocol(node))
     else:
         for node in network.nodes.values():
             logger.debug("Adding protocol to node %s", node.name)
             if node.name == source_val:
-                protocols.append(MultipartiteProtocol(node, source=True))
+                protocols.append(MultipartiteProtocol(node, source=True, receiver = False))
             else:
-                protocols.append(MultipartiteProtocol(node, source=False))
+                protocols.append(MultipartiteProtocol(node))
 
     for protocol in protocols:
         protocol.start()
