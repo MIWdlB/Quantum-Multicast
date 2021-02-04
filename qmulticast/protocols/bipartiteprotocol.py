@@ -61,7 +61,7 @@ class BipartiteProtocol(NodeProtocol):
             self.add_subprotocol(BipartiteOutputProtocol(self.node))
 
         if self._input:
-            self.add_subprotocol(BipartiteInputProtocol(self.node))
+            self.add_subprotocol(BipartiteInputProtocol(self.node, name=f"input-{self.node.name}"))
 
     def run(self):
         """Run the protocol."""
@@ -75,7 +75,6 @@ class BipartiteInputProtocol(NodeProtocol):
 
     def __init__(self, node: Node, name: Optional[str] = None):
         super().__init__(node=node, name=name)
-
         mem_positions = self.node.qmemory.num_positions
         mem_ports = self.node.qmemory.ports
         self.q_in_ports = [mem_ports[f"qin{num}"] for num in range(1, mem_positions, 2)]
@@ -83,6 +82,7 @@ class BipartiteInputProtocol(NodeProtocol):
         self.c_in_ports = [
             port for port in self.node.ports.values() if "cin" in port.name
         ]
+        self.add_signal(label="recieved")
 
     def run(self):
         """Protocol for reciver."""
@@ -100,6 +100,7 @@ class BipartiteInputProtocol(NodeProtocol):
             logger.debug(
                 f"Node {self.node.name} used memory: {self.node.qmemory.used_positions}"
             )
+            self.send_signal("recieved")
 
 
 class ClassicalInputPortProtocol(NodeProtocol):
@@ -196,6 +197,15 @@ class BipartiteOutputProtocol(NodeProtocol):
                 )
                 logger.debug("Completed correction on node %s", end_name)
 
+    def await_transmission_time(self, port_name: str) -> None:
+        """Wait for a qubit to be received at the end of a channel."""
+
+        connection = self.node.ports[port_name].connected_port.component
+        channel = connection.channel_AtoB
+        delay = channel.compute_delay()
+
+        return self.await_timer(delay)
+
     def run(self) -> None:
         """The protocol to be run by a source node."""
         logger.debug(f"Running Output protocol.")
@@ -222,7 +232,11 @@ class BipartiteOutputProtocol(NodeProtocol):
             # TODO how do we find the minimum wait time needed in a sensible way?
             # Could await on ports using
             #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
-            yield self.await_timer(1e3)
+            await_recieved = [
+                self.await_transmission_time(port_name)
+                for port_name in self.node.ports
+            ]
+            yield reduce(operator.and_, await_recieved)
             self._do_corrections(prog.output)
             next(self.fidelity)
 

@@ -63,13 +63,13 @@ def simulate_network(network: Network) -> None:
         protocol.start()
 
     logger.debug("Running sim.")
-    ns.sim_run()
+    ns.sim_run(end_time=5e5)
 
 
 if __name__ == "__main__":
     init_logs()
     logger.debug("Starting program.")
-    graph = ButterflyGraph()
+    graph = ButterflyGraph(length=2)
     logger.debug("Created graph.")
     network = create_bipartite_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")
