@@ -5,6 +5,8 @@ from netsquid.util.simlog import get_loggers
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
 from qmulticast.utils import create_bipartite_network , create_multipartite_network
+from qmulticast.utils import multipartite_qubits, gen_GHZ_ket
+import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils.graphlibrary import *
 
 ns.set_random_state(seed=1234567)
@@ -88,4 +90,5 @@ if __name__ == "__main__":
         network = create_multipartite_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")
     simulate_network(network,run_bipartite,source_node)
-    # calculate fidelity / rate? 
+    qubits = multipartite_qubits(network)
+    print("fidelity :"+str(qapi.fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)))
