@@ -104,7 +104,6 @@ def fidelity_from_node(source: Node) -> float:
         yield
 
 
-
 def log_entanglement_rate():
     """Generator to find the entanglement rate."""
     vals = np.array([sim_time(ns.SECOND)])

@@ -87,7 +87,7 @@ class BipartiteOutputProtocol(NodeProtocol):
         self.source_mem = [
             mem_ports[f"qin{num}"] for num in range(0, len(self.q_out_ports) * 2, 2)
         ]
-        self.sources = [
+        self.source_names = [
             f"qsource-{port.name.lstrip('qout-')}" for port in self.q_out_ports
         ]
         self.fidelity = fidelity_from_node(self.node)
@@ -95,12 +95,24 @@ class BipartiteOutputProtocol(NodeProtocol):
     def _trigger_all_sources(self) -> None:
         """Trigger all sources on the node."""
         logger.debug("Triggering all sources.")
-        self.triggered = {source: False for source in self.sources}
 
-        for source in self.sources:
+        try:
+            routes = self.node.routing_table[self.node.name]
+        except:
+            routes = self.node.routing_table[int(self.node.name)]
+        
+        for source_name in self.source_names:
             # Trigger the source
-            self.node.subcomponents[source].trigger()
-            logger.debug(f"Triggered source {source}.")
+            source = self.node.subcomponents[source_name]
+            _, here, channel_end = source_name.split("-")
+            source.output_meta["origin"] = here 
+            
+            for destination, forward_node in routes.items():
+                #import pdb; pdb.set_trace()
+                if channel_end == (forward_node:= str(forward_node)):
+                    source.output_meta["dest"] = str(destination)
+                    source.trigger()
+                    logger.debug(f"Triggered source {source.name} for destination node {destination}.")
 
     def _send_all_delete(self) -> None:
         """Send a classical message to each reciever node."""
@@ -171,7 +183,7 @@ class BipartiteOutputProtocol(NodeProtocol):
             # TODO how do we find the minimum wait time needed in a sensible way?
             # Could await on ports using
             #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
-            yield self.await_timer(1e4)
+            yield self.await_timer(1e5)
             self._do_corrections(prog.output)
             next(self.fidelity)
 

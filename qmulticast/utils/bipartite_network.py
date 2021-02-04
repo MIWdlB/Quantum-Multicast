@@ -76,7 +76,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = FibreLossModel()
+    fibre_loss = None#FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
@@ -193,27 +193,5 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
                 port_name_node1=f"cout-{edge_name}",
                 port_name_node2=f"cin-{edge_name}",
             )
-
-    # Now go through each node and assign the port
-    # for the input from each channel.
-    for node_name, node in nodes.items():
-        logger.debug(f"Forawrding input for node {node_name}.")
-        mem_position = 1
-        for port in node.ports.values():
-            if "out" in port.name:
-                continue
-            if "cin" in port.name:
-                continue
-
-            logger.debug("Redirecting input port to memory %s.", mem_position)
-
-            # Now from the connection we need to redirect the qubit to the
-            # qmemory of the recieving node.
-            # TODO how do we assing it to an empyty memory slot.
-
-            port.forward_input(
-                node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
-            )
-            mem_position += 2
 
     return network
