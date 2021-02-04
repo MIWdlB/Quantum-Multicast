@@ -137,8 +137,8 @@ def fidelity_from_node(source: Node) -> float:
             discard(qubit)
 
         if run >= 100:
+            # assumes we have defined these at the top of the file.
             with open("statistics.txt", mode="a") as file:
-                file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate\n")
                 file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n\n")
             sim_stop()
         

@@ -69,10 +69,16 @@ def simulate_network(network: Network) -> None:
 
 
 if __name__ == "__main__":
+    min_length = 0
+    max_length = 5
+    steps = 100
+
     with open("statistics.txt", mode="w") as file:
-        pass
+        file.writelines("number of edges, edge length, p_loss_length, p_loss_init")
+        file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate")
+
     logger.debug("Starting program.")
-    for length in np.linspace(0, 5, 10):
+    for length in np.linspace(min_length, max_length, steps):
         init_logs()
         graph = ButterflyGraph(length=length)
         logger.debug("Created graph.")

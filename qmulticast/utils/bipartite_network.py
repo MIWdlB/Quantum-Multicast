@@ -78,7 +78,6 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
 
     with open("statistics.txt", mode="a") as file:
-        file.write("graph name, edge length, p_loss_length, p_loss_init\n")
         file.write(f"{graph.name}, {graph.length}, {p_loss_length}, {p_loss_init}\n")
 
     # Set up a Network object
