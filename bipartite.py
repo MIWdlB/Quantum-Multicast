@@ -9,7 +9,7 @@ from qmulticast.utils import multipartite_qubits, gen_GHZ_ket
 import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils.graphlibrary import *
 
-ns.set_random_state(seed=1234567)
+ns.set_random_state(seed=123456789)
 
 import logging
 
@@ -55,7 +55,7 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
         The network object to run simulation on.
     """
     protocols = []
-    if(bipartite):
+    if bipartite:
         for node in network.nodes.values():
             logger.debug("Adding protocol to node %s", node.name)
             if node.name == source_val:
@@ -85,10 +85,8 @@ if __name__ == "__main__":
     graph = ButterflyGraph()
     logger.debug("Created graph.")
     if (run_bipartite):
-        network = create_bipartite_network("bipartite-butterfly", graph)
+        network = create_bipartite_network("bipartite-butterfly", graph) 
     else:
-        network = create_multipartite_network("bipartite-butterfly", graph)
+        network = create_multipartite_network("multipartite-butterfly", graph)
     logger.debug("Created Network.")
     simulate_network(network,run_bipartite,source_node)
-    qubits = multipartite_qubits(network)
-    print("fidelity :"+str(qapi.fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)))

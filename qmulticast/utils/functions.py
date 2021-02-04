@@ -49,36 +49,46 @@ def fidelity_from_node(source: Node) -> float:
     vals = np.array([])
 
     network = source.supercomponent
-
+    is_multipartite = ("multipartite" in network.name) # hack
     edges = [
         name.lstrip("qsource-")
         for name in source.subcomponents.keys()
         if "qsource" in name
     ]
-    recievers = {edge.split("-")[-1]: edge for edge in edges}
-
+    recievers = {edge.split("-")[-1]: edge for edge in edges} 
+    
+    # define multipartite receivers 
     rate = log_entanglement_rate()
     yield
-
     run = 0
     lost_qubits = 0
     while True:
         run +=1
         qubits = []
         for node in network.nodes.values():
-            if node is source:
-                # Assume that the source has a qubit
-                # and that it's in the 0 position.
-                qubits += node.qmemory.pop(0)
-
-            if node.name in recievers:
-                mem_pos = node.qmemory.get_matching_qubits(
-                    "edge", value=recievers[node.name]
-                )
-                if not mem_pos:
-                    logger.debug("Node %s has not recieved a qubit.", node.name)
-                    lost_qubits += 1
-                qubits += node.qmemory.pop(mem_pos)
+            if is_multipartite:
+                if node is source:
+                    qubits += node.qmemory.pop(0)
+                else:
+                    mem_pos = node.qmemory.used_positions # goes in a semi random mem location
+                    if (mem_pos ==  []):
+                        logger.debug("Node %s has not recieved a qubit.", node.name)
+                        lost_qubits += 1
+                    else:
+                        qubits = qubits + node.qmemory.pop(mem_pos) # for current stuff
+            else:
+                if node is source:
+                    # Assume that the source has a qubit
+                    # and that it's in the 0 position.
+                    qubits += node.qmemory.pop(0)
+                if node.name in recievers:
+                    mem_pos = node.qmemory.get_matching_qubits(
+                        "edge", value=recievers[node.name]
+                    )
+                    if not mem_pos:
+                        logger.debug("Node %s has not recieved a qubit.", node.name)
+                        lost_qubits += 1
+                    qubits += node.qmemory.pop(mem_pos)
 
         # Bit ugly this walrus but I haven't been able to
         # use it yet and I think it's cute.
@@ -91,7 +101,6 @@ def fidelity_from_node(source: Node) -> float:
         fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
         vals = np.append(vals, fidelity_val)
         mean = np.mean(vals)
-
         loss_rate = lost_qubits/(run*(len(recievers)+1))
         # dm = convert_to(qubits, DMRepr)
         res_logger.info(f"Run {run} Fidelity: {fidelity_val}")

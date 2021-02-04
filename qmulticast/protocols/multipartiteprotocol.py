@@ -35,8 +35,7 @@ class MultipartiteProtocol(NodeProtocol):
         node: Node,
         name: Optional[str] = None,
         source: bool = False,
-        receiver: bool = True,
-        routing_table = None):
+        receiver: bool = True):
         """
         Parameters
         ----------
@@ -81,6 +80,7 @@ class MultipartiteOutputProtocol(NodeProtocol):
         self._mem_size = self.node.qmemory.num_positions
         mem_positions = self.node.qmemory.num_positions
         mem_ports = self.node.qmemory.ports
+        self.fidelity = fidelity_from_node(self.node)
         self.q_in_ports = [mem_ports[f"qin{num}"] for num in range(1, mem_positions, 2)]
 
         self.c_in_ports = [
@@ -91,23 +91,24 @@ class MultipartiteOutputProtocol(NodeProtocol):
         """Protocol for reciver."""
         # Get input
         logger.debug(f"Running Multi output protocol.")
-
-        self.start_subprotocols()
+        
         """Run the protocol."""
         node = self.node
         logger.debug(f"Running multipartite protocol on node {node.name}.")
         logger.debug(f"Node: {node.name} " + f"has {self._mem_size} memory slots.")
-        counter = 0
         has_triggered = False
-        while not (has_triggered): # not sure why it doesn't terminate in while(True) loop?
-            counter += 1
-            self.node.subcomponents[f"qsource-{node.name}"].trigger()
-            logger.debug(f"Triggered source qsource-{node.name}.")
-            has_triggered = True
+        while (True): # not sure why it doesn't terminate in while(True) loop?
+            if not (has_triggered):
+                self.node.subcomponents[f"qsource-{node.name}"].trigger()
+                logger.debug(f"Triggered source qsource-{node.name}.")
+                #has_triggered = True
 
-            yield self.await_port_input(node.qmemory.ports["qin0"])
+                yield self.await_port_input(node.qmemory.ports["qin0"])
 
-            logger.debug("source got own qubit in memory")
+                logger.debug("source got own qubit in memory")
 
-            self.send_signal(Signals.SUCCESS) 
-
+                self.send_signal(Signals.SUCCESS) 
+                #yield self.await_port_input(node.qmemory.ports["qin0"])
+                yield self.await_timer(1e4) # should be max RTT (round trip time)
+                next(self.fidelity)
+                

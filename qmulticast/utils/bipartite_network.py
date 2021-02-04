@@ -64,17 +64,17 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = FibreDelayModel()
+    fibre_delay =  None #FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = DepolarNoiseModel(depolar_rate=1e-11)
+    depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = FibreLossModel()
+    fibre_loss = None #FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
