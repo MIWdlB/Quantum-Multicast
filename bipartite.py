@@ -72,7 +72,7 @@ if __name__ == "__main__":
     with open("statistics.txt", mode="w") as file:
         pass
     logger.debug("Starting program.")
-    for length in np.linspace(0, 500, 10):
+    for length in np.linspace(0, 5, 10):
         init_logs()
         graph = ButterflyGraph(length=length)
         logger.debug("Created graph.")

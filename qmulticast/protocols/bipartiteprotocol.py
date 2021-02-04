@@ -203,6 +203,7 @@ class BipartiteOutputProtocol(NodeProtocol):
 
         connection = self.node.ports[port_name].connected_port.component
         channel = connection.channel_AtoB
+
         delay = channel.compute_delay()
         logger.debug(f"Found transmission time {delay} for channel {channel.name}")
 

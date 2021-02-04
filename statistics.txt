@@ -1,40 +1,50 @@
 graph name, edge length, p_loss_length, p_loss_init
 Butterfly, 0.0, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9615384615384612, 0.22424242424242424, 5.000000500000001e-06, 1.9600001960000035e-05
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9791666666666664, 0.1393939393939394, 0.0, 0.0, nan
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 55.55555555555556, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999997, 0.2111111111111111, 5.000000500000001e-06, 1.6111112722222244e-05
+Butterfly, 0.5555555555555556, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999996, 0.184, 2.777778055555555e-06, 8.16498398148149e-06, 0.3402061855670099
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 111.11111111111111, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999996, 0.2202020202020202, 5.000000500000001e-06, 1.8846155730769265e-05
+Butterfly, 1.1111111111111112, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999996, 0.22828282828282828, 5.55555611111111e-06, 2.1777779955555577e-05, 0.2551020408163262
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 166.66666666666669, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999996, 0.19795918367346937, 5.000000500000001e-06, 1.4117648470588261e-05
+Butterfly, 1.6666666666666667, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999996, 0.2530612244897959, 8.333334166666672e-06, 3.478261217391314e-05, 0.23958333333333282
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 222.22222222222223, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999996, 0.19797979797979798, 5.000000500000001e-06, 1.4411766147058848e-05
+Butterfly, 2.2222222222222223, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9499999999999996, 0.26464646464646463, 1.111111222222222e-05, 5.7309947251462046e-05, 0.19387755102040793
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 277.77777777777777, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999996, 0.20408163265306123, 5.000000500000001e-06, 2.02083353541667e-05
+Butterfly, 2.7777777777777777, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999998, 0.3308641975308642, 1.3888890277777775e-05, 8.564815671296306e-05, 0.16216216216216195
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 333.33333333333337, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9999999999999996, 0.224, 5.000000500000001e-06, 1.9038463442307726e-05
+Butterfly, 3.3333333333333335, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999998, 0.3548387096774194, 1.6666668333333343e-05, 0.00018611112972222285, 0.0895522388059699
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 388.8888888888889, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9687499999999996, 0.21616161616161617, 5.000000500000001e-06, 1.5806453193548414e-05
+Butterfly, 3.8888888888888893, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999996, 0.37551020408163266, 1.9444446388888878e-05, 0.00022604168927083316, 0.0860215053763441
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 444.44444444444446, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9827586206896549, 0.254, 5.000000500000001e-06, 1.7678573196428604e-05
+Butterfly, 4.444444444444445, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999997, 0.39, 2.222222444444444e-05, 0.00022962965259259286, 0.09677419354838697
+
 graph name, edge length, p_loss_length, p_loss_init
-Butterfly, 500.0, 0.5, 0.2
-runs, mean_fidelity, loss_rate, min_time, mean_time
-100, 0.9642857142857141, 0.212, 5.000000500000001e-06, 1.83333351666667e-05
+Butterfly, 5.0, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate
+100, 0.9999999999999996, 0.4410958904109589, 2.50000025e-05, 0.0003333333666666659, 0.07500000000000018
+

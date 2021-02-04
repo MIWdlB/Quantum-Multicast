@@ -63,6 +63,9 @@ def fidelity_from_node(source: Node) -> float:
     run = 0
     lost_qubits = 0
     min_time = None
+    mean_time = None
+    mean_fidelity = None
+    loss_rate = None
     while True:
         if run > 2:
             pass
@@ -135,8 +138,8 @@ def fidelity_from_node(source: Node) -> float:
 
         if run >= 100:
             with open("statistics.txt", mode="a") as file:
-                file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time\n")
-                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}\n")
+                file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate\n")
+                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n\n")
             sim_stop()
         
         yield

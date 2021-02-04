@@ -29,12 +29,11 @@ def unpack_edge_values(
 
     edges = {}
     for edge in graph.edges.data():
-        start, stop, weight = edge[0], edge[1], edge[2].get("weight", 1)
+        start, stop, weight = edge[0], edge[1], edge[2]["weight"]
         if str(start) != node.name:
             continue
-        if type(weight) not in [int, float]:
-            raise TypeError("Edge weights must be numeric.")
         edges[stop] = weight
+    logger.debug("Found edges: %s", edges)
 
     return edges
 
@@ -63,7 +62,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     nodes = {node_name: Node(str(node_name)) for node_name in graph.nodes}
 
     # Delay models to use for components.
-    source_delay = FixedDelayModel(delay=0)
+    source_delay = FixedDelayModel()
     fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
