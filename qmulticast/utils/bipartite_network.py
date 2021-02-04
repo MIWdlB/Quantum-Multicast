@@ -5,17 +5,19 @@ TODO maybe make this a subclass of the Network class and build things in init.
 """
 
 import logging
-from typing import Hashable, Dict, Any, Tuple
+from typing import Any, Dict, Hashable, Tuple
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
-from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
-from netsquid.components.models.qerrormodels import DepolarNoiseModel, FibreLossModel
+from netsquid.components import (ClassicalChannel, QuantumChannel,
+                                 QuantumProcessor)
+from netsquid.components.models.delaymodels import (FibreDelayModel,
+                                                    FixedDelayModel)
+from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
+                                                     FibreLossModel)
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
 from netsquid.util.simlog import get_loggers
-
 from networkx import DiGraph
 
 logger = logging.getLogger(__name__)
@@ -64,14 +66,14 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = FibreDelayModel()
+    fibre_delay = None #FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = DepolarNoiseModel(depolar_rate=1e-11)
+    depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
     fibre_loss = FibreLossModel()
@@ -84,9 +86,11 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     # Add unique components to each node
     logger.debug("Adding unique components to nodes.")
     for node_name, node in nodes.items():
-
         # node_name = node.name
         logger.debug(f"Node: {node_name}.")
+
+        # Add the routing table
+        node.routing_table = graph.routing_table
 
         node_connections = unpack_edge_values(node, graph)
 

@@ -1,5 +1,6 @@
 """Defines the butterfly graph"""
 import logging
+
 import networkx as nx
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,12 @@ class RepeaterGraph(nx.DiGraph):
         edges = {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {1: 1}}
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+
+        self.routing_table = {
+            0:{0:0, 1:1, 2:1},
+            1:{0:0, 1:1, 2:2},
+            2:{0:1, 1:1, 2:2},
+        }
 
 
 class TriangleGraph(nx.DiGraph):

@@ -3,8 +3,8 @@
 # define a generic GHZ
 import logging
 
-import numpy as np
 import netsquid as ns
+import numpy as np
 from netsquid.nodes import Node
 from netsquid.qubits.dmtools import DMRepr
 from netsquid.qubits.qrepr import convert_to

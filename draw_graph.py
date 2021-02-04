@@ -1,6 +1,7 @@
-from networkx.drawing.nx_pylab import draw_networkx
-from qmulticast.utils.graphlibrary import ButterflyGraph
 import matplotlib.pyplot as plt
+from networkx.drawing.nx_pylab import draw_networkx
+
+from qmulticast.utils.graphlibrary import ButterflyGraph
 
 if __name__ == "__main__":
     graph = ButterflyGraph()
