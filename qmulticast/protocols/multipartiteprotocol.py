@@ -99,7 +99,7 @@ class MultipartiteOutputProtocol(NodeProtocol):
         logger.debug(f"Node: {node.name} " + f"has {self._mem_size} memory slots.")
         counter = 0
         has_triggered = False
-        while (counter < 1): #looping issue?
+        while not (has_triggered): # not sure why it doesn't terminate in while(True) loop?
             counter += 1
             self.node.subcomponents[f"qsource-{node.name}"].trigger()
             logger.debug(f"Triggered source qsource-{node.name}.")
@@ -109,48 +109,5 @@ class MultipartiteOutputProtocol(NodeProtocol):
 
             logger.debug("source got own qubit in memory")
 
-            self.send_signal(Signals.SUCCESS) # unused
+            self.send_signal(Signals.SUCCESS) 
 
-
-    # def run(self):
-    #     """Run the protocol."""
-    #     node = self.node
-    #     logger.debug(f"Running multipartite protocol on node {node.name}.")
-    #     logger.debug(f"Node: {node.name} " + f"has {self._mem_size} memory slots.")
-    #     counter = 0
-    #     has_triggered = False
-    #     while (counter < 1): #looping issue?
-    #         # Send from source.
-    #         # - out to all connection ports.
-    #         counter += 1
-    #         if self._is_source and has_triggered==False: 
-
-    #             # generate GHZ state
-    #             # keep qubit 0, send rest out
-    #             self.node.subcomponents[f"qsource-{node.name}"].trigger()
-    #             logger.debug(f"Triggered source qsource-{node.name}.")
-    #             has_triggered = True
-
-    #             yield self.await_port_input(node.qmemory.ports["qin0"])
-
-    #             logger.debug("source got own qubit in memory")
-
-    #             self.send_signal(Signals.SUCCESS) # unused
-
-    #         if not self._is_source:
-    #             # Get input
-    #             await_any_input = [
-    #                 self.await_port_input(self.node.qmemory.ports[port])
-    #                 for port in self.input_ports
-    #             ]
-    #             # not awaiting properly
-
-    #             yield reduce(operator.or_, await_any_input)
-
-    #             #  TODO recive input, forward onto required place
-                
-    #             logger.debug(
-    #                 f"Got input: memory useage node: {self.node.name}: {self.node.qmemory.used_positions}"
-    #             )
-    #             self.send_signal(Signals.SUCCESS) # unused
-    #         #next(self.fidelity)
