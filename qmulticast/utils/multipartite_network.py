@@ -70,13 +70,13 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
     depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = None  # FibreLossModel()
+    fibre_loss = FibreLossModel()
 
     # Set up a Network object
     network = Network(name=name)
     logger.debug("Adding nodes to network.")
     network.add_nodes([n for n in nodes.values()])
-
+    losses =(source_delay,fibre_delay,fibre_loss,depolar_noise,source_noise) 
     # Add unique components to each node
     logger.debug("Adding unique components to nodes.")
     for node_name, node in nodes.items():
@@ -109,15 +109,15 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
     
         node.add_subcomponent(qmemory)
         
-        add_mulitpartite_components(node,node_name,port_size,source_delay,source_noise,state_sampler)
+        add_mulitpartite_components(node,port_size,losses,state_sampler)
 
     # We need more than one of some components because of
     # the network topology.
     logger.debug("Adding non-unique components to nodes.")
-    losses =(fibre_delay,fibre_loss,depolar_noise) 
+
     for node_name, node in nodes.items():
 
-        add_non_unique_multipartite(node,node_name,graph,losses,network)
+        add_non_unique_multipartite(node,graph,losses,network)
 
     # Now go through each node and assign the port
     # for the input from each channel.
@@ -141,9 +141,10 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
     return network
 
 
-def add_mulitpartite_components(node,node_name,port_size,source_delay,source_noise,state_sampler):
+def add_mulitpartite_components(node,port_size,losses,state_sampler):
+    node_name = node.name
     logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
-
+    (source_delay,fibre_delay,fibre_loss,depolar_noise,source_noise) = losses
     qsource = QSource(
         name=f"qsource-{node_name}",
         state_sampler=state_sampler,
@@ -161,10 +162,10 @@ def add_mulitpartite_components(node,node_name,port_size,source_delay,source_noi
     )
 
 
-def add_non_unique_multipartite(node, node_name, graph , losses, network):
-    # node_name = node.name
+def add_non_unique_multipartite(node, graph , losses, network):
+    node_name = node.name
     logger.debug(f"Node: {node_name}")
-    (fibre_delay,fibre_loss,depolar_noise) = losses
+    (source_delay,fibre_delay,fibre_loss,depolar_noise,source_noise) = losses
     node_connections = unpack_edge_values(node, graph)
 
     # Add channels
