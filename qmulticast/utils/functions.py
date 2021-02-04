@@ -139,7 +139,7 @@ def fidelity_from_node(source: Node) -> float:
         if run >= 100:
             # assumes we have defined these at the top of the file.
             with open("statistics.txt", mode="a") as file:
-                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n\n")
+                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n")
             sim_stop()
         
         yield
