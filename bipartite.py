@@ -5,8 +5,9 @@ from netsquid.util.simlog import get_loggers
 from qmulticast.protocols import BipartiteProtocol
 from qmulticast.utils import create_bipartite_network
 from qmulticast.utils.graphlibrary import *
+import numpy as np
 
-ns.set_random_state(seed=1234567)
+ns.set_random_state(seed=123456)
 
 import logging
 
@@ -38,7 +39,7 @@ def init_logs() -> None:
     simlogger.addHandler(fhandler)
 
     shandler = logging.StreamHandler()
-    shandler.setLevel(logging.WARNING)
+    shandler.setLevel(logging.ERROR)
     shandler.setFormatter(formatter)
     simlogger.addHandler(shandler)
 
@@ -63,14 +64,18 @@ def simulate_network(network: Network) -> None:
         protocol.start()
 
     logger.debug("Running sim.")
-    ns.sim_run(end_time=5e5)
+    ns.sim_run()
+    ns.sim_reset()
 
 
 if __name__ == "__main__":
-    init_logs()
+    with open("statistics.txt", mode="w") as file:
+        pass
     logger.debug("Starting program.")
-    graph = ButterflyGraph(length=2)
-    logger.debug("Created graph.")
-    network = create_bipartite_network("bipartite-butterfly", graph)
-    logger.debug("Created Network.")
-    network = simulate_network(network)
+    for length in np.linspace(0, 500, 10):
+        init_logs()
+        graph = ButterflyGraph(length=length)
+        logger.debug("Created graph.")
+        network = create_bipartite_network("bipartite-butterfly", graph)
+        logger.debug("Created Network.")
+        network = simulate_network(network)

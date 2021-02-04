@@ -195,16 +195,18 @@ class BipartiteOutputProtocol(NodeProtocol):
                     qubit_mapping = qubit,
                     physical = False
                 )
+
                 logger.debug("Completed correction on node %s", end_name)
 
-    def await_transmission_time(self, port_name: str) -> None:
+    def transmission_time(self, port_name: str) -> None:
         """Wait for a qubit to be received at the end of a channel."""
 
         connection = self.node.ports[port_name].connected_port.component
         channel = connection.channel_AtoB
         delay = channel.compute_delay()
+        logger.debug(f"Found transmission time {delay} for channel {channel.name}")
 
-        return self.await_timer(delay)
+        return delay * 1.0000001
 
     def run(self) -> None:
         """The protocol to be run by a source node."""
@@ -233,13 +235,16 @@ class BipartiteOutputProtocol(NodeProtocol):
             # Could await on ports using
             #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
             await_recieved = [
-                self.await_transmission_time(port_name)
+                self.await_timer(self.transmission_time(port_name))
                 for port_name in self.node.ports
+                if "qout" in port_name
             ]
+            logger.debug("Waiting transmission time.")
             yield reduce(operator.and_, await_recieved)
             self._do_corrections(prog.output)
+
             next(self.fidelity)
 
             # self._send_all_delete()
             logger.debug("Clearing local memory.")
-            [self.node.qmemory.pop(index) for index in self.node.qmemory.used_positions]
+            self.node.qmemory.reset()

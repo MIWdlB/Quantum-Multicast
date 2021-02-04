@@ -1,0 +1,40 @@
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 0.0, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9615384615384612, 0.22424242424242424, 5.000000500000001e-06, 1.9600001960000035e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 55.55555555555556, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999997, 0.2111111111111111, 5.000000500000001e-06, 1.6111112722222244e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 111.11111111111111, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999996, 0.2202020202020202, 5.000000500000001e-06, 1.8846155730769265e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 166.66666666666669, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999996, 0.19795918367346937, 5.000000500000001e-06, 1.4117648470588261e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 222.22222222222223, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999996, 0.19797979797979798, 5.000000500000001e-06, 1.4411766147058848e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 277.77777777777777, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999996, 0.20408163265306123, 5.000000500000001e-06, 2.02083353541667e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 333.33333333333337, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9999999999999996, 0.224, 5.000000500000001e-06, 1.9038463442307726e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 388.8888888888889, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9687499999999996, 0.21616161616161617, 5.000000500000001e-06, 1.5806453193548414e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 444.44444444444446, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9827586206896549, 0.254, 5.000000500000001e-06, 1.7678573196428604e-05
+graph name, edge length, p_loss_length, p_loss_init
+Butterfly, 500.0, 0.5, 0.2
+runs, mean_fidelity, loss_rate, min_time, mean_time
+100, 0.9642857142857141, 0.212, 5.000000500000001e-06, 1.83333351666667e-05

@@ -64,7 +64,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
 
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
-    fibre_delay = None #FibreDelayModel()
+    fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
@@ -74,7 +74,13 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = FibreLossModel(p_loss_length=0.499953474697078, p_loss_init=0)
+    p_loss_length = 0.5
+    p_loss_init = 0.2
+    fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
+
+    with open("statistics.txt", mode="a") as file:
+        file.write("graph name, edge length, p_loss_length, p_loss_init\n")
+        file.write(f"{graph.name}, {graph.length}, {p_loss_length}, {p_loss_init}\n")
 
     # Set up a Network object
     network = Network(name=name)

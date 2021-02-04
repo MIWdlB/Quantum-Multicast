@@ -20,6 +20,8 @@ class ButterflyGraph(nx.DiGraph):
         }
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+        self.name = "Butterfly"
+        self.length = length
 
 
 class TwinGraph(nx.DiGraph):
@@ -31,6 +33,8 @@ class TwinGraph(nx.DiGraph):
         edges = {0: {1: length}, 1: {0: length}}
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+        self.name = "Twin"
+        self.length = length
 
 
 class RepeaterGraph(nx.DiGraph):
@@ -42,6 +46,8 @@ class RepeaterGraph(nx.DiGraph):
         edges = {0: {1: length}, 1: {0: length, 2: length}, 2: {1: length}}
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+        self.name = "Repeater"
+        self.length = length
 
 
 class TriangleGraph(nx.DiGraph):
@@ -53,3 +59,5 @@ class TriangleGraph(nx.DiGraph):
         edges = {0: {1: length, 2: length}, 1: {0: length, 2: length}, 2: {0: length, 1: length}}
         temp = nx.DiGraph(edges)
         self.add_edges_from(temp.edges)
+        self.name = "Triangle"
+        self.length = length
