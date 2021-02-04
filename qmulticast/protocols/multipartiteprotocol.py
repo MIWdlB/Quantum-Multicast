@@ -50,34 +50,15 @@ class MultipartiteProtocol(NodeProtocol):
         self.input_ports = [
             port for port in self.input_ports if int(port.lstrip("qin")) % 2 == 1
         ]
-
-        self.source_mem = [port for port in self.node.qmemory.ports if "qin" in port]
-
-        self.source_mem.remove("qin")
-        self.source_mem = [
-            port for port in self.source_mem if int(port.lstrip("qin")) % 2 == 0
-        ]
-
-        self.output_ports = [
-            port for port in self.node.ports.values() if "out" in port.name
-        ]
-
-        self._is_source = source
         self._mem_size = self.node.qmemory.num_positions
+        self._is_source = source
 
-        # for port_num in range(self._mem_size):
-        #     # We assume input memory ports are the odd numbers.
-        #     if port_num % 2 == 1:
-        #         logger.debug("Adding move protocol for port %s", port_num)
-        #         self.add_subprotocol(
-        #             MoveInput(self.node, node.qmemory.ports[f"qin{port_num}"])
-        #         )
 
     def run(self):
         """Run the protocol."""
         node = self.node
         logger.debug(f"Running multipartite protocol on node {node.name}.")
-        logger.debug(f"Node: {self.node.name} " + f"has {self._mem_size} memory slots.")
+        logger.debug(f"Node: {node.name} " + f"has {self._mem_size} memory slots.")
         counter = 0
         has_triggered = False
         while (counter < 1): #looping issue?
@@ -91,8 +72,7 @@ class MultipartiteProtocol(NodeProtocol):
                 self.node.subcomponents[f"qsource-{node.name}"].trigger()
                 logger.debug(f"Triggered source qsource-{node.name}.")
                 has_triggered = True
-                # there are no imputs?
-                #import pdb;pdb.set_trace()
+
                 yield self.await_port_input(node.qmemory.ports["qin0"])
 
                 logger.debug("source got own qubit in memory")
@@ -105,9 +85,11 @@ class MultipartiteProtocol(NodeProtocol):
                     self.await_port_input(self.node.qmemory.ports[port])
                     for port in self.input_ports
                 ]
+                # not awaiting properly
+
                 yield reduce(operator.or_, await_any_input)
 
-                # recive input, forward onto required place
+                #  TODO recive input, forward onto required place
                 
                 logger.debug(
                     f"Got input: memory useage node: {self.node.name}: {self.node.qmemory.used_positions}"

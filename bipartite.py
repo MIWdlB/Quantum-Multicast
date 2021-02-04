@@ -2,8 +2,9 @@ import netsquid as ns
 from netsquid.nodes import Network
 from netsquid.util.simlog import get_loggers
 
-from qmulticast.protocols import BipartiteProtocol
-from qmulticast.utils import create_bipartite_network
+
+from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
+from qmulticast.utils import create_bipartite_network , create_multipartite_network
 from qmulticast.utils.graphlibrary import *
 
 ns.set_random_state(seed=1234567)
@@ -43,7 +44,7 @@ def init_logs() -> None:
     simlogger.addHandler(shandler)
 
 
-def simulate_network(network: Network) -> None:
+def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> None:
     """Assign protocols and run simulation.
 
     Parameters
@@ -52,12 +53,20 @@ def simulate_network(network: Network) -> None:
         The network object to run simulation on.
     """
     protocols = []
-    for node in network.nodes.values():
-        logger.debug("Adding protocol to node %s", node.name)
-        if node.name == "2":
-            protocols.append(BipartiteProtocol(node, source=True))
-        else:
-            protocols.append(BipartiteProtocol(node, source=False))
+    if(bipartite):
+        for node in network.nodes.values():
+            logger.debug("Adding protocol to node %s", node.name)
+            if node.name == source_val:
+                protocols.append(BipartiteProtocol(node, source=True))
+            else:
+                protocols.append(BipartiteProtocol(node, source=False))
+    else:
+        for node in network.nodes.values():
+            logger.debug("Adding protocol to node %s", node.name)
+            if node.name == source_val:
+                protocols.append(MultipartiteProtocol(node, source=True))
+            else:
+                protocols.append(MultipartiteProtocol(node, source=False))
 
     for protocol in protocols:
         protocol.start()
@@ -67,10 +76,16 @@ def simulate_network(network: Network) -> None:
 
 
 if __name__ == "__main__":
+    run_bipartite = False
+    source_node = "2"
     init_logs()
     logger.debug("Starting program.")
     graph = ButterflyGraph()
     logger.debug("Created graph.")
-    network = create_bipartite_network("bipartite-butterfly", graph)
+    if (run_bipartite):
+        network = create_bipartite_network("bipartite-butterfly", graph)
+    else:
+        network = create_multipartite_network("bipartite-butterfly", graph)
     logger.debug("Created Network.")
-    network = simulate_network(network)
+    simulate_network(network,run_bipartite,source_node)
+    # calculate fidelity / rate? 

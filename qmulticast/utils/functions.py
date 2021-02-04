@@ -5,12 +5,12 @@ import logging
 
 import numpy as np
 import netsquid as ns
-from netsquid.nodes import Node
+from netsquid.nodes import Node,Network
 from netsquid.qubits.dmtools import DMRepr
 from netsquid.qubits.qrepr import convert_to
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from netsquid.util.simtools import sim_time
-
+import netsquid.qubits.qubitapi as qapi
 logger = logging.getLogger(__name__)
 
 res_logger = logging.Logger(name='results', level=logging.DEBUG)
@@ -126,3 +126,12 @@ def log_entanglement_rate():
             logger.info(f"Entanglement Rate: {1/diff}Hz")
             res_logger.info(f"Entanglement Rate: {1/diff}Hz")
         yield
+
+
+def multipartite_qubits(network: Network):
+    qubits = []
+    for node in network.nodes.values():
+        mem_pos = node.qmemory.used_positions # goes in a semi random mem location
+        qubits = qubits + node.qmemory.peek(mem_pos)
+    qapi.combine_qubits(qubits)
+    return qubits

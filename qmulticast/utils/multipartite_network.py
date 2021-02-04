@@ -60,14 +60,11 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
 
     # First set up NetSquid node objects for each graph node.
     nodes = {node_name: Node(str(node_name)) for node_name in graph.nodes}
-
+    state_sampler = StateSampler(gen_GHZ_ket(len(nodes)))
     # Delay models to use for components.
     source_delay = FixedDelayModel(delay=0)
     fibre_delay = FibreDelayModel()
 
-    # Set up a state sampler for the |B00> bell state.
-    #state_sampler = StateSampler([ks.b00], [1.0])
-    state_sampler = StateSampler(gen_GHZ_ket(len(nodes)))
     # Noise models to use for components.
     # TODO find a suitable rate
     depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
@@ -96,8 +93,9 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
         # TODO initalise given memory with respect to routing chart
         # for now just assume one source and rest are max 1 edge away (??)
         # give all maximium mem required e.g. hold whole GHZ state
-        mem_size = len(graph.nodes)*2
 
+        port_size = len(graph.nodes)
+        mem_size = port_size*2 # input and output
         # Add a quantum memory to each of the nodes.
         # TODO how much memory do we want to give?
         # TODO change this to a processor as in tutorial "A full simulation"
@@ -108,82 +106,18 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
             num_positions=mem_size,
             memory_noise_models=depolar_noise,
         )
-
+    
         node.add_subcomponent(qmemory)
-
-        logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
-        qsource = QSource(
-            name=f"qsource-{node_name}",
-            state_sampler=state_sampler,
-            models={
-                "emission_delay_model": source_delay,
-                "emissions_noise_model": source_noise,
-            },
-            num_ports=len(graph.nodes),# size of GHZ state? each qubit goes to a out port
-            status=SourceStatus.EXTERNAL,
-        )
-        node.add_subcomponent(qsource)
-        # add first qubit to local mem
-        qsource.ports["qout0"].connect(
-            node.subcomponents["qmemory"].ports[f"qin{0}"]
-        )
-
+        
+        add_mulitpartite_components(node,node_name,port_size,source_delay,source_noise,state_sampler)
 
     # We need more than one of some components because of
     # the network topology.
     logger.debug("Adding non-unique components to nodes.")
+    losses =(fibre_delay,fibre_loss,depolar_noise) 
     for node_name, node in nodes.items():
 
-        # node_name = node.name
-        logger.debug(f"Node: {node_name}")
-
-        node_connections = unpack_edge_values(node, graph)
-
-        # Add channels
-        logger.debug("Adding connections.")
-        # Iterate over memory positions
-        #mem_position = 0
-        node_output = 1
-        for end, length in node_connections.items():
-            # need the names as a string for the channel
-            node_name = str(node_name)
-            end_name = str(end)
-            edge_name = node_name + "-" + end_name
-
-            logger.debug(f"Creating channel 'qchannel-{edge_name}.")
-            qc_channel = QuantumChannel(
-                name=f"qchannel-{edge_name}",
-                length=length,
-                models={
-                    "delay_model": fibre_delay,
-                    "quantum_loss_model": fibre_loss,
-                    "quantum_noise_model": depolar_noise,
-                },
-            )
-
-            logger.debug(f"Adding network connection on edge {edge_name}.")
-            out_port, _ = network.add_connection(
-                node_name,
-                end_name,
-                channel_to=qc_channel,
-                label=edge_name,
-                bidirectional=False,
-                port_name_node1=f"out-{edge_name}",
-                port_name_node2=f"in-{edge_name}",
-            )
-            #node.add_subcomponent(out_port)
-            # Turns out this is more difficult cause we need to
-            # prevent ourselves overwriting memory
-            logger.debug("Redirecting qsource ports.")
-            # Now redirect from the source to the ports
-
-            # First one goes out to the output port
-
-            #import pdb;pdb.set_trace()
-            node.subcomponents[f"qsource-{node_name}"].ports[f"qout{node_output}"].forward_output(node.ports[out_port])
-            # not same subcomponents
-            # second one goes to the first memory register.
-            node_output += 1
+        add_non_unique_multipartite(node,node_name,graph,losses,network)
 
     # Now go through each node and assign the port
     # for the input from each channel.
@@ -205,3 +139,67 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
             mem_position += 2
 
     return network
+
+
+def add_mulitpartite_components(node,node_name,port_size,source_delay,source_noise,state_sampler):
+    logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
+
+    qsource = QSource(
+        name=f"qsource-{node_name}",
+        state_sampler=state_sampler,
+        models={
+            "emission_delay_model": source_delay,
+            "emissions_noise_model": source_noise,
+        },
+        num_ports=port_size,# size of GHZ state? each qubit goes to a out port
+        status=SourceStatus.EXTERNAL,
+    )
+    node.add_subcomponent(qsource)
+    # add first qubit to local mem
+    qsource.ports["qout0"].connect(
+        node.subcomponents["qmemory"].ports[f"qin{0}"]
+    )
+
+
+def add_non_unique_multipartite(node, node_name, graph , losses, network):
+    # node_name = node.name
+    logger.debug(f"Node: {node_name}")
+    (fibre_delay,fibre_loss,depolar_noise) = losses
+    node_connections = unpack_edge_values(node, graph)
+
+    # Add channels
+    logger.debug("Adding connections.")
+    # Iterate over memory positions
+    #mem_position = 0
+    node_output = 1
+    for end, length in node_connections.items():
+        # need the names as a string for the channel
+        node_name = str(node_name)
+        end_name = str(end)
+        edge_name = node_name + "-" + end_name
+
+        logger.debug(f"Creating channel 'qchannel-{edge_name}.")
+        qc_channel = QuantumChannel(
+            name=f"qchannel-{edge_name}",
+            length=length,
+            models={
+                "delay_model": fibre_delay,
+                "quantum_loss_model": fibre_loss,
+                "quantum_noise_model": depolar_noise,
+            },
+        )
+        logger.debug(f"Adding network connection on edge {edge_name}.")
+        out_port, _ = network.add_connection(
+            node_name,
+            end_name,
+            channel_to=qc_channel,
+            label=edge_name,
+            bidirectional=False,
+            port_name_node1=f"out-{edge_name}",
+            port_name_node2=f"in-{edge_name}",
+        )
+
+        logger.debug("Redirecting qsource ports.")
+        node.subcomponents[f"qsource-{node_name}"].ports[f"qout{node_output}"].forward_output(node.ports[out_port])
+        node_output += 1
+
