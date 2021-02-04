@@ -2,13 +2,14 @@
 import logging
 import operator
 from functools import reduce
-from typing import List, Optional
+from typing import ForwardRef, List, Optional
 
 from netsquid.components.component import Port
 from netsquid.components.instructions import INSTR_X
 from netsquid.components.qprogram import QuantumProgram
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
+from netsquid.components.component import Message
 
 logger = logging.getLogger(__name__)
 
@@ -143,14 +144,35 @@ class RepeaterProtocol(NodeProtocol):
             message = self.port.rx_input()
             #import pdb; pdb.set_trace()
             origin = message.meta["origin"]
-            dest = message.meta["dest"]
 
-            if dest == here:
-                pos = [pos for pos in self.node.qmemory.unused_positions 
-                if pos % 2 == 1][0]
-                self.node.qmemory.put(message.items, positions=pos)
-            else:
-                forward_node = self.routes[int(here)][int(dest)]
-                self.node.ports[f"qout-{here}-{forward_node}"].tx_output(message)
-                logger.debug(f"Forwarded qubit from {origin} to {dest} via {forward_node}.")
+            # Destinations are apended for each trigger of the source
+            # so it only one item use the last one.
+            # for n items use the last n destinations
+            # in reverse order.
+            destinations = message.meta["dest"]
+            destinations = destinations[::-1]
+            destinations = destinations[:len(message.items)]
 
+            forward_nodes = [self.routes[int(here)][int(dest)] for dest in destinations]
+
+            new_messages_content = {forward_node: {"destinations": None, "qubits": []} for forward_node in forward_nodes}
+
+            for i, qubit in enumerate(message.items):
+                new_messages_content[forward_nodes[i]]["destinations"] = destinations[i]
+                new_messages_content[forward_nodes[i]]["qubits"].append(qubit)
+            logger.debug(f"New message content: {new_messages_content}")
+
+            for forward_node, content in new_messages_content.items():
+                qubits = content["qubits"]
+                dests = content["destinations"]
+                new_message = Message(qubits, origin=origin, dest=dests)
+                
+                if here in dests:
+                    for qubit in qubits:
+                        pos = [pos for pos in self.node.qmemory.unused_positions 
+                        if pos % 2 == 1][0]
+                        self.node.qmemory.put(qubit, positions=pos)
+                else:
+                    self.node.ports[f"qout-{here}-{forward_node}"].tx_output(new_message)
+                    logger.debug(f"Forwarded qubits {qubits} from {origin} to {dests} via {forward_node}")
+                    logger.debug(f"\twith {new_message}")

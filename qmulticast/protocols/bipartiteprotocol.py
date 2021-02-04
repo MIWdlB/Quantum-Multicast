@@ -106,11 +106,12 @@ class BipartiteOutputProtocol(NodeProtocol):
             source = self.node.subcomponents[source_name]
             _, here, channel_end = source_name.split("-")
             source.output_meta["origin"] = here 
+            source.output_meta["dest"] = []
             
             for destination, forward_node in routes.items():
                 #import pdb; pdb.set_trace()
                 if channel_end == (forward_node:= str(forward_node)):
-                    source.output_meta["dest"] = str(destination)
+                    source.output_meta["dest"] += str(destination)
                     source.trigger()
                     logger.debug(f"Triggered source {source.name} for destination node {destination}.")
 

@@ -73,7 +73,7 @@ def fidelity_from_node(source: Node) -> float:
 
             if node.name in recievers:
                 mem_pos = node.qmemory.get_matching_qubits(
-                    "edge", value=recievers[node.name]
+                    "origin", value=source.name
                 )
                 if not mem_pos:
                     logger.debug("Node %s has not recieved a qubit.", node.name)
