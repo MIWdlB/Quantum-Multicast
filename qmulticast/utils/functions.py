@@ -69,10 +69,10 @@ def fidelity_from_node(source: Node) -> float:
     loss_rate = None
     while True:
         if run == 1:
-            first_time = sim_time(ns.SECOND)
+            min_time = sim_time(ns.SECOND)
         elif run == 2:
             second_time = sim_time(ns.SECOND)
-            min_time = second_time-first_time
+            min_time = second_time-min_time
 
         run +=1
         qubits = []

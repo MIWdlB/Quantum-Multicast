@@ -73,7 +73,7 @@ if __name__ == "__main__":
     min_length = 0
     max_length = 10
     steps = 100
-    min_nodes = 2
+    min_nodes = 5
     max_nodes = 5
     for num_nodes in range(min_nodes, max_nodes+1):
         output_file = f"data/statistics-len:{min_length}-{max_length}-nodes:{num_nodes}.csv"
