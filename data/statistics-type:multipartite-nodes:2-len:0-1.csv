@@ -1,3 +1,4 @@
 number of edges, edge length, p_loss_length, p_loss_init
 runs, mean fidelity, loss rate, min time, mean time, entanglement rate
-6,0.0,1.5811388300841898,0.2
+2,0.0,1.5811388300841898,0.2
+250,0.9999999999999998,0.13866666666666666,0.0,0.0,nan

@@ -17,6 +17,7 @@ from netsquid.qubits.state_sampler import StateSampler
 from netsquid.util.simlog import get_loggers
 
 from networkx import DiGraph
+from .functions import gen_GHZ_ket
 import csv
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ def unpack_edge_values(
     return edges
 
 
-def create_bipartite_network(name: str, graph: DiGraph, output_file: str) -> Network:
+def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool = True) -> Network:
     """Turn graph into netsquid network.
 
     Give each node a bipatite source for each edge, assign memory

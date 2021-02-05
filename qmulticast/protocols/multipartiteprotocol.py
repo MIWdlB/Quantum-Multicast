@@ -97,19 +97,11 @@ class MultipartiteOutputProtocol(OutputProtocol):
 
                 self.send_signal(Signals.SUCCESS) 
                 #yield self.await_port_input(node.qmemory.ports["qin0"])
-                await_recieved = []
-                help_me = []
-                for port_name in self.node.ports:
-                    #help_me.append(port_name)
-                    if 'out' in port_name:
-                        help_me.append(port_name)
-                        await_recieved.append(self.await_timer(self._transmission_time(port_name)))
-
-                # await_recieved = [
-                #     self.await_timer(self.transmission_time(port_name))
-                #     for port_name in self.node.ports
-                #     if "qout" in port_name
-                # ]
+                await_recieved = [
+                    self.await_timer(self._transmission_time(port_name)) 
+                    for port_name in self.node.ports 
+                    if "qout" in port_name
+                ]
                 logger.debug("Waiting transmission time.")
                 yield reduce(operator.and_, await_recieved)
                 #yield self.await_timer(1e5) # should be max RTT (round trip time)

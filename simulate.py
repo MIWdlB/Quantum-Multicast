@@ -4,11 +4,12 @@ from netsquid.util.simlog import get_loggers
 
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
-from qmulticast.utils import create_bipartite_network , create_multipartite_network
+from qmulticast.utils import create_network
 from qmulticast.utils import gen_GHZ_ket
 import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils.graphlibrary import *
 import numpy as np
+from time import time
 
 ns.set_random_state(seed=123456)
 
@@ -79,38 +80,39 @@ def simulate_network(network: Network, bipartite = True, source_val = "0" ) -> N
     ns.sim_run()
     ns.sim_reset()
 
-
 if __name__ == "__main__":
-    min_length = 1
-    max_length = 2
+    min_length = 0
+    max_length = 6
     steps = 100
-    min_nodes = 1
-    max_nodes = 1
-    for num_nodes in range(min_nodes, max_nodes+1):
-        output_file = f"data/statistics-len:{min_length}-{max_length}-nodes:{num_nodes}.csv"
-        with open(output_file, mode="w") as file:
-            file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
-            file.writelines("runs, mean fidelity, loss rate, min time, mean time, entanglement rate\n")
+    min_nodes = 2
+    max_nodes = 5
 
-        logger.debug("Starting program.")
-        for length in np.linspace(min_length, max_length, steps):
-            print(f"Calculating with {num_nodes} nodes and length {length}")
-            init_logs()
-            graph = nx.DiGraph()
-            graph.length = length
-            
-            # Add the number of edges we want.
-            for node in range(1, num_nodes+1):
-                graph.add_edge(str(0), str(node), weight=length)
-                graph.add_edge(str(node), str(0), weight=length)
+    start_time = time()
 
-            logger.debug("Created multipartite graph.")
-            network = create_bipartite_network("bipartite-butterfly", graph, output_file)
-            logger.debug("Created multipartite Network.")
-            network = simulate_network(network)
+    for bipartite in [True, False]:
+        for num_nodes in range(min_nodes, max_nodes+1):
+            type = "bipartite" if bipartite else "multipartite"
             
-            logger.debug("Created multipartite graph.")
-            network = create_multipartite_network("bipartite-butterfly", graph, output_file)
-            logger.debug("Created multipartite Network.")
-            network = simulate_network(network)
-        
+            output_file = f"data/statistics-type:{type}-nodes:{num_nodes}-len:{min_length}-{max_length}.csv"
+            with open(output_file, mode="w") as file:
+                file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
+                file.writelines("runs, mean fidelity, fidelity std, loss rate, min time, mean time, time std, entanglement rate\n")
+
+            logger.debug("Starting program.")
+            for length in np.linspace(min_length, max_length, steps):
+                print(f"Calculating with {num_nodes} nodes and length {length}")
+                init_logs()
+                graph = nx.DiGraph()
+                graph.length = length
+                
+                # Add the number of edges we want.
+                for node in range(1, num_nodes+1):
+                    graph.add_edge("0", str(node), weight=length)
+                    graph.add_edge(str(node), "0", weight=length)
+
+                logger.debug("Created multipartite graph.")
+                network = create_network("bipartite-butterfly", graph, output_file, bipartite=bipartite)
+                logger.debug("Created multipartite Network.")
+                network = simulate_network(network, bipartite)
+            
+    print(f"Total sim time: {time()-start_time}")

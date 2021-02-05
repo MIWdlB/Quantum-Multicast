@@ -1,0 +1,3 @@
+number of edges, edge length, p_loss_length, p_loss_init
+runs, mean fidelity, fidelity std, loss rate, min time, mean time, time std, entanglement rate
+2,0.0,1.5811388300841898,0.2
