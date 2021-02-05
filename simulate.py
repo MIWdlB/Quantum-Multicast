@@ -84,10 +84,14 @@ if __name__ == "__main__":
     min_length = 0
     max_length = 6
     steps = 100
-    min_nodes = 2
-    max_nodes = 5
+    min_nodes = 1
+    max_nodes = 6
 
     start_time = time()
+
+    input= input("Are you sure you want to start and overwrite data? Type 'yes'\t")
+    if input != "yes":
+        sys.exit()
 
     for bipartite in [True, False]:
         for num_nodes in range(min_nodes, max_nodes+1):
@@ -114,5 +118,5 @@ if __name__ == "__main__":
                 network = create_network("bipartite-butterfly", graph, output_file, bipartite=bipartite)
                 logger.debug("Created multipartite Network.")
                 network = simulate_network(network, bipartite)
-            
+            print(f"Run time {time() - start_time}")
     print(f"Total sim time: {time()-start_time}")

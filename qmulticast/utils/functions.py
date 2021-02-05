@@ -120,6 +120,8 @@ def fidelity_from_node(source: Node) -> float:
             
             mean_time, time_std = next(rate)
 
+            res_logger.debug("Average Run time: %s", mean_time)
+            logger.debug("Average Run time: %s", time_std)
             res_logger.debug("Min Run time: %s", min_time)
             logger.debug("Min Run time: %s", min_time)
 
@@ -137,7 +139,7 @@ def fidelity_from_node(source: Node) -> float:
         for qubit in qubits:
             discard(qubit)
 
-        if hits >= 100 or run >= 500:
+        if hits >= 100 or run >= 1000:
             logger.debug("Logging results.")
             # assumes we have defined these at the top of the file.
             with open(network.output_file, mode="a") as file:
@@ -152,7 +154,6 @@ def log_entanglement_rate():
     """Generator to find the entanglement rate."""
     vals = np.array([sim_time(ns.SECOND)])
     logger.info("Entanglement rate initialised.")
-    yield
 
     while True:
         time = sim_time(ns.SECOND)
@@ -166,6 +167,6 @@ def log_entanglement_rate():
         logger.debug("Average Run time: %s", mean_diff)
         
         std = np.std(vals)
-        if mean_diff is None:
-            import pdb; pdb.set_trace()
-        yield (mean_diff, std)
+        output = (mean_diff, std)
+
+        yield output

@@ -1,19 +1,21 @@
 """Plot out data from datafiles."""
 import csv
+import os
+import re
+from typing import Dict, List
 import numpy as np
 import matplotlib.pyplot as plt
 from pprint import pprint as print
 
-def get_data()->None:
+def get_file_data(datafile) -> Dict:
     """Plots the data"""
     
-    datafile = "statistics.csv"
+    data = {}
 
     with open(datafile) as file:
         reader = csv.reader(file, delimiter=",")
 
         fields = []
-        data = {}
         temp = []
 
         # Header has passed read main data.
@@ -22,41 +24,106 @@ def get_data()->None:
             if index == 0 or index == 1:
                 fields += line
                 data = {field.strip(): np.array([], dtype=np.float32) for field in fields}
-            
             elif index % 2 == 0:
                 temp += line
             elif index % 2 == 1:
                 temp += line
                 for field, item in zip(fields, temp):
                     if item == "nan":
-                        item = 0
-                    item = float(item)
+                        item = None
+                    else:
+                        item = float(item)
                     data[field.strip()] = np.append(data[field.strip()], item)
                 temp = []
 
-        print([key for key in data])
-        print({i: j for i, j in zip(data["edge length"], data["mean_fidelity"])})
     return data
 
-def plot_these(data: dict, x_axis: str, y_axis:str) -> None:
-    x = data[x_axis]
-    y = data[y_axis]
+def get_all_data() -> Dict:
+    """Get all the data from all files."""
 
-    assert len(x) == len(y)
+    files = os.listdir("data/")
+    
+    data = {}
 
-    num_edges = data["number of edges"][0]
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8]) # main axes
-    ax.plot(x, y)
-    title = f"edge:{num_edges} {x_axis} {y_axis}.jpg"
-    ax.set_title(title)
-    ax.set_xlabel(x_axis)
-    ax.set_ylabel(y_axis)
-    ax.set_xticks([0,1,2,3,4])
-    ax.set_yticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    pattern = re.compile(pattern='nodes:(\d)')
+
+    for file in files:
+        num_nodes = pattern.search(file).groups()[0]
+        num_nodes = int(num_nodes)
+
+        data[num_nodes] = data.get(num_nodes, {})
+
+        if "bipartite" in file:
+            type = "bipartite"
+        elif "multipartite" in file:
+            type = "multipartite"
+        else:
+            raise NameError("Cannot parse network type from filename.")
+
+        data[num_nodes][type] = get_file_data("data/" + file)
+
+    return data
+
+
+def plot_these(data: dict, type: str, num_nodes: List[int], measure: str) -> None:
+    """Plot the data.
+    
+    Parameters
+    ----------
+    data : Dict
+        A dict containg the data to be plotted.
+
+    type : "bipartite", "multipartite", "comparison"
+        The type of network to plot data for.
+
+    num_nodes : List[int]
+        A list of node quantities to plot data for.
+
+    maesure : "fidelity" or "rate"
+        The measure to plot data for.
+    """
+    networks = []
+    #fig, ax = plt.subplots()
+    #ax = fig.axes([0.1, 0.1, 0.8, 0.8]) # main axes
+
+    if type in ["bipartite", "comparison"]:
+        networks.append("bipartite")
+    if type in ["multipartite", "comparison"]:
+        networks.append("multipartite")
+    
+    if not networks:
+        raise ValueError("'type' must be 'bipartite', 'multipartite' or 'comparison'")
+    
+    for network in networks:
+        for num in num_nodes:
+            # The data keys use 
+
+            x = data[num][network]['edge length']
+
+            if measure == "fidelity":
+                datakey = "mean fidelity"
+                stdkey = "fidelity std"
+            elif measure == "rate":
+                datakey = "entanglement rate"
+                stdkey = "time std"
+            else:
+                raise ValueError("'measure' must be 'fidelity' or 'rate'")
+
+            y = data[num][network][datakey]
+            std = data[num][network][stdkey]
+
+            plt.plot(x, y, label=f"{network} {num} nodes")
+
+    title = f"{type} {datakey}.jpg"
+    plt.title(title)
+    plt.xlabel("distance")
+    plt.ylabel(measure)
+    #plt.xticks([0,1,2,3,4,5,6])
+    #ax.set_yticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    plt.legend()
     plt.show()
     plt.savefig(fname=f"data-{title}")
 
 if __name__=="__main__":
-    data = get_data()
-    plot_these(data, "edge length", "mean_fidelity")
+    data = get_all_data()
+    plot_these(data, type="comparison", num_nodes=[2], measure="rate")
