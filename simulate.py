@@ -48,7 +48,7 @@ def init_logs() -> None:
     # simlogger.addHandler(shandler)
 
 
-def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> None:
+def simulate_network(network: Network, bipartite = True, source_val = "0" ) -> None:
     """Assign protocols and run simulation.
 
     Parameters
@@ -61,7 +61,7 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
         for node in network.nodes.values():
             logger.debug("Adding protocol to node %s", node.name)
             if node.name == source_val:
-                protocols.append(BipartiteProtocol(node, source=True,receiver = False))
+                protocols.append(BipartiteProtocol(node, source=True, receiver = False))
             else:
                 protocols.append(BipartiteProtocol(node))
     else:
@@ -82,7 +82,7 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
 
 if __name__ == "__main__":
     min_length = 1
-    max_length = 1
+    max_length = 2
     steps = 100
     min_nodes = 1
     max_nodes = 1
@@ -109,8 +109,8 @@ if __name__ == "__main__":
             logger.debug("Created multipartite Network.")
             network = simulate_network(network)
             
-            #logger.debug("Created multipartite graph.")
-            #network = create_bipartite_network("bipartite-butterfly", graph, output_file)
-            #logger.debug("Created multipartite Network.")
-            #network = simulate_network(network)
+            logger.debug("Created multipartite graph.")
+            network = create_multipartite_network("bipartite-butterfly", graph, output_file)
+            logger.debug("Created multipartite Network.")
+            network = simulate_network(network)
         

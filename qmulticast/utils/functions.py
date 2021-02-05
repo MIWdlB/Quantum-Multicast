@@ -152,8 +152,9 @@ def fidelity_from_node(source: Node) -> float:
             discard(qubit)
 
         if run >= 250:
+            logger.debug("Logging results.")
             # assumes we have defined these at the top of the file.
-            with open("statistics.csv", mode="a") as file:
+            with open(network.output_file, mode="a") as file:
                 writer = csv.writer(file)
                 data = [run, mean_fidelity, loss_rate, min_time, mean_time, min_time/mean_time]
                 writer.writerow(data)

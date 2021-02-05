@@ -78,7 +78,7 @@ def create_bipartite_network(name: str, graph: DiGraph, output_file: str) -> Net
     p_loss_init = 0.2
     fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
 
-    logger.debug("Writing network data to file.")
+    logger.debug(f"Writing network data to file {output_file}.")
     with open(output_file, mode="a") as file:
         writer = csv.writer(file)
         data = [graph.degree['0'], graph.length, p_loss_length, p_loss_init]

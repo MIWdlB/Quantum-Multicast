@@ -37,7 +37,7 @@ class QuantumInputProtocol(NodeProtocol):
     def run(self):
         """Protocol for reciver."""
         # Get input
-        logger.debug(f"Running Input protocol.")
+        logger.debug(f"Running Quantum Input protocol.")
         await_quantum_input = [self.await_port_input(port) for port in self.q_in_ports]
 
         self.start_subprotocols()

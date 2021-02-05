@@ -70,13 +70,12 @@ class BipartiteOutputProtocol(OutputProtocol):
     """Defines behaviour of node when outputting qubits"""
 
     def __init__(self, node: Node, name: Optional[str] = None):
+        logger.debug("Initialising bipartite output protocol.")
         super().__init__(node=node, name=name)
-
         mem_ports = self.node.qmemory.ports
         self.q_out_ports = [
             value for key, value in self.node.ports.items() if "qout" in key
         ]
-
         self.source_mem = [
             mem_ports[f"qin{num}"] for num in range(0, len(self.q_out_ports) * 2, 2)
         ]
@@ -133,7 +132,7 @@ class BipartiteOutputProtocol(OutputProtocol):
 
     def run(self) -> None:
         """The protocol to be run by a source node."""
-        logger.debug(f"Running Output protocol.")
+        logger.debug(f"Running Bipartite Output protocol.")
 
         while True:
 
@@ -158,7 +157,7 @@ class BipartiteOutputProtocol(OutputProtocol):
             # Could await on ports using
             #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
             await_recieved = [
-                self.await_timer(self.transmission_time(port_name))
+                self.await_timer(self._transmission_time(port_name))
                 for port_name in self.node.ports
                 if "qout" in port_name
             ]
