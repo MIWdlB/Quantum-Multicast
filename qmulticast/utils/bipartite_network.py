@@ -29,12 +29,11 @@ def unpack_edge_values(
 
     edges = {}
     for edge in graph.edges.data():
-        start, stop, weight = edge[0], edge[1], edge[2].get("weight", 1)
+        start, stop, weight = edge[0], edge[1], edge[2]["weight"]
         if str(start) != node.name:
             continue
-        if type(weight) not in [int, float]:
-            raise TypeError("Edge weights must be numeric.")
         edges[stop] = weight
+    logger.debug("Found edges: %s", edges)
 
     return edges
 
@@ -63,8 +62,8 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     nodes = {node_name: Node(str(node_name)) for node_name in graph.nodes}
 
     # Delay models to use for components.
-    source_delay = FixedDelayModel(delay=0)
-    fibre_delay =  None #FibreDelayModel()
+    source_delay = FixedDelayModel()
+    fibre_delay = FibreDelayModel()
 
     # Set up a state sampler for the |B00> bell state.
     state_sampler = StateSampler([ks.b00], [1.0])
@@ -74,7 +73,13 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = None #FibreLossModel()
+    p_loss_length = 0.5
+    p_loss_init = 0.2
+    fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
+
+    with open("statistics.txt", mode="a") as file:
+        file.write("graph name, edge length, p_loss_length, p_loss_init\n")
+        file.write(f"{graph.name}, {graph.length}, {p_loss_length}, {p_loss_init}\n")
 
     # Set up a Network object
     network = Network(name=name)
@@ -108,6 +113,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     # We need more than one of some components because of
     # the network topology.
     logger.debug("Adding non-unique components to nodes.")
+
     for node_name, node in nodes.items():
 
         # node_name = node.name
