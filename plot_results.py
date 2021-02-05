@@ -32,7 +32,7 @@ def get_data()->None:
                 temp = []
         
         print([key for key in data])
-
+        #print({length: fidelity for length, fidelity in zip(data["edge length"], data["mean_fidelity"])})
     return data
 
 def plot_these(data: dict, x_axis: str, y_axis:str) -> None:
@@ -50,4 +50,4 @@ def plot_these(data: dict, x_axis: str, y_axis:str) -> None:
 
 if __name__=="__main__":
     data = get_data()
-    plot_these(data, "edge length", "mean_fidelity")
+    plot_these(data, "edge length", "entanglement_rate")
