@@ -8,8 +8,8 @@ import netsquid as ns
 from netsquid.nodes import Node
 from netsquid.qubits.dmtools import DMRepr
 from netsquid.qubits.qrepr import convert_to
-from netsquid.qubits.qubitapi import fidelity, reduced_dm
-from netsquid.util.simtools import sim_time
+from netsquid.qubits.qubitapi import fidelity, reduced_dm, measure, discard
+from netsquid.util.simtools import sim_time, sim_stop
 
 logger = logging.getLogger(__name__)
 
@@ -62,14 +62,28 @@ def fidelity_from_node(source: Node) -> float:
 
     run = 0
     lost_qubits = 0
+    min_time = None
+    mean_time = None
+    mean_fidelity = None
+    loss_rate = None
     while True:
+        if run > 2:
+            pass
+        elif run == 1:
+            first_time = sim_time(ns.SECOND)
+        elif run == 2:
+            second_time = sim_time(ns.SECOND)
+            min_time = second_time-first_time
+
         run +=1
         qubits = []
+        qmems = []
         for node in network.nodes.values():
             if node is source:
                 # Assume that the source has a qubit
                 # and that it's in the 0 position.
-                qubits += node.qmemory.pop(0)
+                qubits += node.qmemory.peek(0)
+                qmems.append(node.qmemory)
 
             if node.name in recievers:
                 mem_pos = node.qmemory.get_matching_qubits(
@@ -78,7 +92,8 @@ def fidelity_from_node(source: Node) -> float:
                 if not mem_pos:
                     logger.debug("Node %s has not recieved a qubit.", node.name)
                     lost_qubits += 1
-                qubits += node.qmemory.pop(mem_pos)
+                qubits += node.qmemory.peek(mem_pos)
+                qmems.append(node.qmemory)
 
         # Bit ugly this walrus but I haven't been able to
         # use it yet and I think it's cute.
@@ -86,24 +101,48 @@ def fidelity_from_node(source: Node) -> float:
             logger.warning("Some GHZ qubits were lost!")
             logger.warning("Number of edges: %s", le)
             logger.warning("Number of qubits: %s (expecting %s)", lq, (le+1))
+            
+        else:
+            logger.debug("GHZ Qubit(s) %s", qubits)
+            fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
+            vals = np.append(vals, fidelity_val)
+            mean_fidelity = np.mean(vals)
 
-        logger.debug("GHZ Qubit(s) %s", qubits)
-        fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
-        vals = np.append(vals, fidelity_val)
-        mean = np.mean(vals)
+            loss_rate = lost_qubits/(run*(len(recievers)+1))
+            # dm = convert_to(qubits, DMRepr)
+            res_logger.info(f"Run {run} Fidelity: {fidelity_val}")
+            res_logger.info(f"Average Fidelity: {mean_fidelity}")
+            res_logger.info(f"Qubit loss rate: {loss_rate}")
+            logger.info(f"Run {run} Fidelity: {fidelity_val}")
+            logger.info(f"Average Fidelity: {mean_fidelity}")
+            logger.info(f"Qubit loss rate: {loss_rate}")
+            
+            mean_time = next(rate)
 
-        loss_rate = lost_qubits/(run*(len(recievers)+1))
-        # dm = convert_to(qubits, DMRepr)
-        res_logger.info(f"Run {run} Fidelity: {fidelity_val}")
-        res_logger.info(f"Average Fidelity: {mean}")
-        logger.info(f"Run {run} Fidelity: {fidelity_val}")
-        logger.info(f"Average Fidelity: {mean}")
-        res_logger.info(f"Qubit loss rate: {loss_rate}")
-        logger.info(f"Qubit loss rate: {loss_rate}")
-        next(rate)
+            res_logger.debug("Min Run time: %s", min_time)
+            logger.debug("Min Run time: %s", min_time)
+
+            if mean_time == 0:
+                logger.error("No time has passed - entanglement rate infinite.") 
+                res_logger.error("No time has passed - entanglement rate infinite.") 
+            elif min_time and mean_time:
+                res_logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
+                logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
+
+        # Clean up by getting rid of qubits
+        logger.debug("Discarding qubits.")
+        for qmem in qmems:
+            qmem.reset()
+        for qubit in qubits:
+            discard(qubit)
+
+        if run >= 100:
+            with open("statistics.txt", mode="a") as file:
+                file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate\n")
+                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n\n")
+            sim_stop()
+        
         yield
-
-
 
 def log_entanglement_rate():
     """Generator to find the entanglement rate."""
@@ -114,15 +153,11 @@ def log_entanglement_rate():
     while True:
         time = sim_time(ns.SECOND)
         vals = np.append(vals, time)
-        res_logger.debug("Run time: %s", time)
-        logger.debug("Run time: %s", time)
+        res_logger.debug("Run time: %s", vals[-1] - vals[-2])
+        logger.debug("Run time: %s", vals[-1] - vals[-2])
         # Take mean difference so that we get more
         # accurate over time.
-        diff = np.mean(vals[1:] - vals[0:-1])
-        if diff == 0:
-            logger.error("No time has passed - entanglement rate infinite.") 
-            res_logger.error("No time has passed - entanglement rate infinite.") 
-        else:
-            logger.info(f"Entanglement Rate: {1/diff}Hz")
-            res_logger.info(f"Entanglement Rate: {1/diff}Hz")
-        yield
+        mean_diff = np.mean(vals[1:] - vals[0:-1])
+        res_logger.debug("Average Run time: %s", mean_diff)
+        logger.debug("Average Run time: %s", mean_diff)
+        yield mean_diff
