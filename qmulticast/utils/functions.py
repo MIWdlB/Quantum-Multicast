@@ -6,9 +6,12 @@ import logging
 import numpy as np
 import csv
 import netsquid as ns
-from netsquid.nodes import Node
+from netsquid.nodes import Node,Network
 from netsquid.qubits.dmtools import DMRepr
 from netsquid.qubits.qrepr import convert_to
+from netsquid.qubits.qubitapi import fidelity, reduced_dm
+from netsquid.util.simtools import sim_time
+import netsquid.qubits.qubitapi as qapi
 from netsquid.qubits.qubitapi import fidelity, reduced_dm, measure, discard
 from netsquid.util.simtools import sim_time, sim_stop
 
@@ -24,7 +27,8 @@ res_logger.addHandler(fhandler)
 
 def gen_GHZ_ket(n) -> np.ndarray:
     """Create a GHZ state of n qubits.
-
+    Wants a list returned in the form of weights of each element of ket 
+    e.g. |X> =  0.5|00> + 0|01> + 0|10> 0.5|11> => [[0.5],[0],[0],[0.5]]
     Parameters
     ----------
     n : int
@@ -34,7 +38,6 @@ def gen_GHZ_ket(n) -> np.ndarray:
     x = np.zeros((k, 1), dtype=complex)
     x[k - 1] = 1
     x[0] = 1
-    # return = KetRepr(x)/np.sqrt(2)
     return x / np.sqrt(2)
 
 
@@ -50,17 +53,17 @@ def fidelity_from_node(source: Node) -> float:
     vals = np.array([])
 
     network = source.supercomponent
-
+    is_multipartite = ("multipartite" in network.name) # hack
     edges = [
         name.lstrip("qsource-")
         for name in source.subcomponents.keys()
         if "qsource" in name
     ]
-    recievers = {edge.split("-")[-1]: edge for edge in edges}
-
+    recievers = {edge.split("-")[-1]: edge for edge in edges} 
+    
+    # define multipartite receivers 
     rate = log_entanglement_rate()
     yield
-
     run = 0
     lost_qubits = 0
     min_time = None
@@ -78,25 +81,38 @@ def fidelity_from_node(source: Node) -> float:
         qubits = []
         qmems = []
         for node in network.nodes.values():
-            if node is source:
-                # Assume that the source has a qubit
-                # and that it's in the 0 position.
-                qubits += node.qmemory.peek(0)
-                qmems.append(node.qmemory)
+            if is_multipartite:
+                if node is source:
+                    qubits += node.qmemory.peek(0)
+                    qmems.append(node.qmemory)
+                else:
+                    mem_pos = node.qmemory.used_positions # goes in a semi random mem location
+                    if (mem_pos ==  []):
+                        logger.debug("Node %s has not recieved a qubit.", node.name)
+                        lost_qubits += 1
+                    else:
+                        qubits = qubits + node.qmemory.peek(mem_pos) # for current stuff
+                        qmems.append(node.qmemory)
+            else:
+                if node is source:
+                    # Assume that the source has a qubit
+                    # and that it's in the 0 position.
+                    qubits += node.qmemory.peek(0)
+                    qmems.append(node.qmemory)
 
-            if node.name in recievers:
-                mem_pos = node.qmemory.get_matching_qubits(
-                    "edge", value=recievers[node.name]
-                )
-                if not mem_pos:
-                    logger.debug("Node %s has not recieved a qubit.", node.name)
-                    lost_qubits += 1
-                qubits += node.qmemory.peek(mem_pos)
-                qmems.append(node.qmemory)
+                if node.name in recievers:
+                    mem_pos = node.qmemory.get_matching_qubits(
+                        "edge", value=recievers[node.name]
+                    )
+                    if not mem_pos:
+                        logger.debug("Node %s has not recieved a qubit.", node.name)
+                        lost_qubits += 1
+                    qubits += node.qmemory.peek(mem_pos)
+                    qmems.append(node.qmemory)
 
         # Bit ugly this walrus but I haven't been able to
         # use it yet and I think it's cute.
-        if (lq := len(qubits)) - (le := len(edges)) != 1:
+        if (lq := len(qubits)) - (le := len(edges)) != 1 and not is_multipartite:
             logger.warning("Some GHZ qubits were lost!")
             logger.warning("Number of edges: %s", le)
             logger.warning("Number of qubits: %s (expecting %s)", lq, (le+1))

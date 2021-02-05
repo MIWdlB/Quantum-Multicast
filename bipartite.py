@@ -2,8 +2,11 @@ import netsquid as ns
 from netsquid.nodes import Network
 from netsquid.util.simlog import get_loggers
 
-from qmulticast.protocols import BipartiteProtocol
-from qmulticast.utils import create_bipartite_network
+
+from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
+from qmulticast.utils import create_bipartite_network , create_multipartite_network
+from qmulticast.utils import gen_GHZ_ket
+import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils.graphlibrary import *
 import numpy as np
 
@@ -45,7 +48,7 @@ def init_logs() -> None:
     # simlogger.addHandler(shandler)
 
 
-def simulate_network(network: Network) -> None:
+def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> None:
     """Assign protocols and run simulation.
 
     Parameters
@@ -54,12 +57,20 @@ def simulate_network(network: Network) -> None:
         The network object to run simulation on.
     """
     protocols = []
-    for node in network.nodes.values():
-        logger.debug("Adding protocol to node %s", node.name)
-        if node.name == "2":
-            protocols.append(BipartiteProtocol(node, source=True))
-        else:
-            protocols.append(BipartiteProtocol(node, source=False))
+    if bipartite:
+        for node in network.nodes.values():
+            logger.debug("Adding protocol to node %s", node.name)
+            if node.name == source_val:
+                protocols.append(BipartiteProtocol(node, source=True,receiver = False))
+            else:
+                protocols.append(BipartiteProtocol(node))
+    else:
+        for node in network.nodes.values():
+            logger.debug("Adding protocol to node %s", node.name)
+            if node.name == source_val:
+                protocols.append(MultipartiteProtocol(node, source=True, receiver = False))
+            else:
+                protocols.append(MultipartiteProtocol(node))
 
     for protocol in protocols:
         protocol.start()
@@ -90,8 +101,13 @@ if __name__ == "__main__":
             for node in range(1, num_nodes+1):
                 graph.add_edge(str(0), str(node), weight=length)
                 graph.add_edge(str(node), str(0), weight=length)
-            logger.debug("Created graph.")
+            logger.debug("Created multipartite graph.")
             network = create_bipartite_network("bipartite-butterfly", graph, output_file)
-            logger.debug("Created Network.")
+            logger.debug("Created multipartite Network.")
+            network = simulate_network(network)
+            
+            logger.debug("Created multipartite graph.")
+            network = create_bipartite_network("bipartite-butterfly", graph, output_file)
+            logger.debug("Created multipartite Network.")
             network = simulate_network(network)
         
