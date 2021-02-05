@@ -17,6 +17,7 @@ from netsquid.qubits.state_sampler import StateSampler
 from netsquid.util.simlog import get_loggers
 
 from networkx import DiGraph
+import csv
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +78,10 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     p_loss_init = 0.2
     fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
 
-    with open("statistics.txt", mode="a") as file:
-        file.write(f"{graph.name}, {graph.length}, {p_loss_length}, {p_loss_init}\n")
+    with open("statistics.csv", mode="a") as file:
+        writer = csv.writer(file)
+        data = [graph.degree['0'], graph.length, p_loss_length, p_loss_init]
+        writer.writerow(data)
 
     # Set up a Network object
     network = Network(name=name)

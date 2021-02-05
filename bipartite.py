@@ -10,6 +10,7 @@ import numpy as np
 ns.set_random_state(seed=123456)
 
 import logging
+import sys
 
 
 def init_logs() -> None:
@@ -32,16 +33,16 @@ def init_logs() -> None:
     global logger
     logger = logging.getLogger(__name__)
 
-    simlogger = logging.getLogger("netsquid")
-    simlogger.setLevel(logging.DEBUG)
-    fhandler = logging.FileHandler("simlogs.txt", mode="w")
-    fhandler.setFormatter(formatter)
-    simlogger.addHandler(fhandler)
+    # simlogger = logging.getLogger("netsquid")
+    # simlogger.setLevel(logging.DEBUG)
+    # fhandler = logging.FileHandler("simlogs.txt", mode="w")
+    # fhandler.setFormatter(formatter)
+    # simlogger.addHandler(fhandler)
 
-    shandler = logging.StreamHandler()
-    shandler.setLevel(logging.ERROR)
-    shandler.setFormatter(formatter)
-    simlogger.addHandler(shandler)
+    # shandler = logging.StreamHandler(stream=sys.stdout)
+    # shandler.setLevel(logging.ERROR)
+    # shandler.setFormatter(formatter)
+    # simlogger.addHandler(shandler)
 
 
 def simulate_network(network: Network) -> None:
@@ -73,12 +74,14 @@ if __name__ == "__main__":
     max_length = 5
     steps = 100
 
-    with open("statistics.txt", mode="w") as file:
-        file.writelines("number of edges, edge length, p_loss_length, p_loss_init")
+    with open("statistics.csv", mode="w") as file:
+        file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
         file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate")
 
     logger.debug("Starting program.")
+    num_nodes = 4
     for length in np.linspace(min_length, max_length, steps):
+        print(f"Calculating with {num_nodes} nodes and length {length}")
         init_logs()
         graph = ButterflyGraph(length=length)
         logger.debug("Created graph.")

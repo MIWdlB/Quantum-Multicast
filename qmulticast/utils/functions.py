@@ -4,6 +4,7 @@
 import logging
 
 import numpy as np
+import csv
 import netsquid as ns
 from netsquid.nodes import Node
 from netsquid.qubits.dmtools import DMRepr
@@ -138,8 +139,10 @@ def fidelity_from_node(source: Node) -> float:
 
         if run >= 100:
             # assumes we have defined these at the top of the file.
-            with open("statistics.txt", mode="a") as file:
-                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n")
+            with open("statistics.csv", mode="a") as file:
+                writer = csv.writer(file)
+                data = [run, mean_fidelity, loss_rate, min_time, mean_time, min_time/mean_time]
+                writer.writerow(data)
             sim_stop()
         
         yield

@@ -3,6 +3,7 @@ logs.txt
 results.txt
 simlogs.txt
 statistics.txt
+.csv
 
 #Plots
 graphplot.*
