@@ -81,11 +81,11 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
 
 
 if __name__ == "__main__":
-    min_length = 0
-    max_length = 10
+    min_length = 1
+    max_length = 1
     steps = 100
-    min_nodes = 5
-    max_nodes = 5
+    min_nodes = 1
+    max_nodes = 1
     for num_nodes in range(min_nodes, max_nodes+1):
         output_file = f"data/statistics-len:{min_length}-{max_length}-nodes:{num_nodes}.csv"
         with open(output_file, mode="w") as file:
@@ -98,16 +98,19 @@ if __name__ == "__main__":
             init_logs()
             graph = nx.DiGraph()
             graph.length = length
+            
+            # Add the number of edges we want.
             for node in range(1, num_nodes+1):
                 graph.add_edge(str(0), str(node), weight=length)
                 graph.add_edge(str(node), str(0), weight=length)
+
             logger.debug("Created multipartite graph.")
             network = create_bipartite_network("bipartite-butterfly", graph, output_file)
             logger.debug("Created multipartite Network.")
             network = simulate_network(network)
             
-            logger.debug("Created multipartite graph.")
-            network = create_bipartite_network("bipartite-butterfly", graph, output_file)
-            logger.debug("Created multipartite Network.")
-            network = simulate_network(network)
+            #logger.debug("Created multipartite graph.")
+            #network = create_bipartite_network("bipartite-butterfly", graph, output_file)
+            #logger.debug("Created multipartite Network.")
+            #network = simulate_network(network)
         

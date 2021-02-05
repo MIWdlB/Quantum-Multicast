@@ -29,7 +29,7 @@ def unpack_edge_values(node: str, graph: DiGraph) -> Tuple[Hashable, Hashable, D
     
     edges = {}
     for edge in graph.edges.data():
-        start, stop, weight = edge[0], edge[1], edge[2].get('weight', 1)
+        start, stop, weight = edge[0], edge[1], edge[2].get('weight')
         if str(start) != node.name:
             continue
         if type(weight) not in [int, float]:
