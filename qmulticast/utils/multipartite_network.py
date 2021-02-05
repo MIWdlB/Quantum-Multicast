@@ -62,15 +62,17 @@ def create_multipartite_network(name: str, graph: DiGraph) -> Network:
     nodes = {node_name: Node(str(node_name)) for node_name in graph.nodes}
     state_sampler = StateSampler(gen_GHZ_ket(len(nodes)))
     # Delay models to use for components.
-    source_delay = FixedDelayModel(delay=0)
-    fibre_delay = FibreDelayModel()
+    source_delay = FixedDelayModel()
+    fibre_delay =  FibreDelayModel()
 
     # Noise models to use for components.
     # TODO find a suitable rate
-    depolar_noise = None  # DepolarNoiseModel(depolar_rate=1e-21)
+    depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    fibre_loss = FibreLossModel()
+    p_loss_length = 0.5
+    p_loss_init = 0.2
+    fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
 
     # Set up a Network object
     network = Network(name=name)

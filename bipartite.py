@@ -5,16 +5,12 @@ from netsquid.util.simlog import get_loggers
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
 from qmulticast.utils import create_bipartite_network , create_multipartite_network
-from qmulticast.utils import multipartite_qubits, gen_GHZ_ket
+from qmulticast.utils import gen_GHZ_ket
 import netsquid.qubits.qubitapi as qapi
 from qmulticast.utils.graphlibrary import *
 import numpy as np
 
-<<<<<<< HEAD
-ns.set_random_state(seed=123456789)
-=======
 ns.set_random_state(seed=123456)
->>>>>>> origin/main
 
 import logging
 
@@ -84,28 +80,19 @@ def simulate_network(network: Network, bipartite = True, source_val = "2" ) -> N
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    run_bipartite = False
+    run_bipartite = True
     source_node = "2"
-    init_logs()
     logger.debug("Starting program.")
-    graph = ButterflyGraph()
-    logger.debug("Created graph.")
-    if (run_bipartite):
-        network = create_bipartite_network("bipartite-butterfly", graph) 
-    else:
-        network = create_multipartite_network("multipartite-butterfly", graph)
-    logger.debug("Created Network.")
-    simulate_network(network,run_bipartite,source_node)
-=======
     with open("statistics.txt", mode="w") as file:
         pass
-    logger.debug("Starting program.")
     for length in np.linspace(0, 5, 10):
         init_logs()
-        graph = ButterflyGraph(length=length)
+        print(length)
+        graph = ButterflyGraph(int(length))
         logger.debug("Created graph.")
-        network = create_bipartite_network("bipartite-butterfly", graph)
+        if (run_bipartite):
+            network = create_bipartite_network("bipartite-butterfly", graph) 
+        else:
+            network = create_multipartite_network("multipartite-butterfly", graph)
         logger.debug("Created Network.")
-        network = simulate_network(network)
->>>>>>> origin/main
+        simulate_network(network,run_bipartite,source_node)

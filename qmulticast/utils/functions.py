@@ -84,14 +84,16 @@ def fidelity_from_node(source: Node) -> float:
         for node in network.nodes.values():
             if is_multipartite:
                 if node is source:
-                    qubits += node.qmemory.pop(0)
+                    qubits += node.qmemory.peek(0)
+                    qmems.append(node.qmemory)
                 else:
                     mem_pos = node.qmemory.used_positions # goes in a semi random mem location
                     if (mem_pos ==  []):
                         logger.debug("Node %s has not recieved a qubit.", node.name)
                         lost_qubits += 1
                     else:
-                        qubits = qubits + node.qmemory.pop(mem_pos) # for current stuff
+                        qubits = qubits + node.qmemory.peek(mem_pos) # for current stuff
+                        qmems.append(node.qmemory)
             else:
                 if node is source:
                     # Assume that the source has a qubit
@@ -111,7 +113,7 @@ def fidelity_from_node(source: Node) -> float:
 
         # Bit ugly this walrus but I haven't been able to
         # use it yet and I think it's cute.
-        if (lq := len(qubits)) - (le := len(edges)) != 1:
+        if (lq := len(qubits)) - (le := len(edges)) != 1 and not is_multipartite:
             logger.warning("Some GHZ qubits were lost!")
             logger.warning("Number of edges: %s", le)
             logger.warning("Number of qubits: %s (expecting %s)", lq, (le+1))

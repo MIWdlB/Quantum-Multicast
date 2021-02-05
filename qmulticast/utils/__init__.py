@@ -2,7 +2,7 @@
 
 from .bipartite_network import create_bipartite_network
 from .multipartite_network import create_multipartite_network
-from .functions import fidelity_from_node, gen_GHZ_ket, log_entanglement_rate,multipartite_qubits
+from .functions import fidelity_from_node, gen_GHZ_ket, log_entanglement_rate
 from .graphlibrary import ButterflyGraph, RepeaterGraph, TwinGraph
 
 __all__ = [
@@ -14,5 +14,4 @@ __all__ = [
     log_entanglement_rate,
     create_bipartite_network,
     create_multipartite_network,
-    multipartite_qubits,
-]
+    ]

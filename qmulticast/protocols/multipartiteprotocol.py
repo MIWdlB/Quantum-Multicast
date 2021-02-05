@@ -87,6 +87,17 @@ class MultipartiteOutputProtocol(NodeProtocol):
             port for port in self.node.ports.values() if "cin" in port.name
         ]
 
+    def transmission_time(self, port_name: str) -> None:
+        """Wait for a qubit to be received at the end of a channel."""
+
+        connection = self.node.ports[port_name].connected_port.component
+        channel = connection.channel_AtoB
+
+        delay = channel.compute_delay()
+        logger.debug(f"Found transmission time {delay} for channel {channel.name}")
+
+        return delay * 1.0000001
+
     def run(self):
         """Protocol for reciver."""
         # Get input
@@ -109,6 +120,21 @@ class MultipartiteOutputProtocol(NodeProtocol):
 
                 self.send_signal(Signals.SUCCESS) 
                 #yield self.await_port_input(node.qmemory.ports["qin0"])
-                yield self.await_timer(1e4) # should be max RTT (round trip time)
+                await_recieved = []
+                help_me = []
+                for port_name in self.node.ports:
+                    #help_me.append(port_name)
+                    if 'out' in port_name:
+                        help_me.append(port_name)
+                        await_recieved.append(self.await_timer(self.transmission_time(port_name)))
+
+                # await_recieved = [
+                #     self.await_timer(self.transmission_time(port_name))
+                #     for port_name in self.node.ports
+                #     if "qout" in port_name
+                # ]
+                logger.debug("Waiting transmission time.")
+                yield reduce(operator.and_, await_recieved)
+                #yield self.await_timer(1e5) # should be max RTT (round trip time)
                 next(self.fidelity)
                 
