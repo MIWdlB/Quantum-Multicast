@@ -71,20 +71,27 @@ def simulate_network(network: Network) -> None:
 
 if __name__ == "__main__":
     min_length = 0
-    max_length = 5
+    max_length = 10
     steps = 100
+    min_nodes = 2
+    max_nodes = 5
+    for num_nodes in range(min_nodes, max_nodes+1):
+        output_file = f"data/statistics-len:{min_length}-{max_length}-nodes:{num_nodes}.csv"
+        with open(output_file, mode="w") as file:
+            file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
+            file.writelines("runs, mean fidelity, loss rate, min time, mean time, entanglement rate\n")
 
-    with open("statistics.csv", mode="w") as file:
-        file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
-        file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate")
-
-    logger.debug("Starting program.")
-    num_nodes = 4
-    for length in np.linspace(min_length, max_length, steps):
-        print(f"Calculating with {num_nodes} nodes and length {length}")
-        init_logs()
-        graph = ButterflyGraph(length=length)
-        logger.debug("Created graph.")
-        network = create_bipartite_network("bipartite-butterfly", graph)
-        logger.debug("Created Network.")
-        network = simulate_network(network)
+        logger.debug("Starting program.")
+        for length in np.linspace(min_length, max_length, steps):
+            print(f"Calculating with {num_nodes} nodes and length {length}")
+            init_logs()
+            graph = nx.DiGraph()
+            graph.length = length
+            for node in range(1, num_nodes+1):
+                graph.add_edge(str(0), str(node), weight=length)
+                graph.add_edge(str(node), str(0), weight=length)
+            logger.debug("Created graph.")
+            network = create_bipartite_network("bipartite-butterfly", graph, output_file)
+            logger.debug("Created Network.")
+            network = simulate_network(network)
+        

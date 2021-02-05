@@ -68,9 +68,7 @@ def fidelity_from_node(source: Node) -> float:
     mean_fidelity = None
     loss_rate = None
     while True:
-        if run > 2:
-            pass
-        elif run == 1:
+        if run == 1:
             first_time = sim_time(ns.SECOND)
         elif run == 2:
             second_time = sim_time(ns.SECOND)
@@ -137,7 +135,7 @@ def fidelity_from_node(source: Node) -> float:
         for qubit in qubits:
             discard(qubit)
 
-        if run >= 100:
+        if run >= 250:
             # assumes we have defined these at the top of the file.
             with open("statistics.csv", mode="a") as file:
                 writer = csv.writer(file)
@@ -163,4 +161,6 @@ def log_entanglement_rate():
         mean_diff = np.mean(vals[1:] - vals[0:-1])
         res_logger.debug("Average Run time: %s", mean_diff)
         logger.debug("Average Run time: %s", mean_diff)
+        if mean_diff is None:
+            import pdb; pdb.set_trace()
         yield mean_diff

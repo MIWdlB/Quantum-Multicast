@@ -39,7 +39,7 @@ def unpack_edge_values(
     return edges
 
 
-def create_bipartite_network(name: str, graph: DiGraph) -> Network:
+def create_bipartite_network(name: str, graph: DiGraph, output_file: str) -> Network:
     """Turn graph into netsquid network.
 
     Give each node a bipatite source for each edge, assign memory
@@ -74,11 +74,11 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     depolar_noise = None #DepolarNoiseModel(depolar_rate=1e-11)
     source_noise = depolar_noise
     # TODO do we want to change the default values?
-    p_loss_length = 0.5
+    p_loss_length = 1.5811388300841898
     p_loss_init = 0.2
     fibre_loss = FibreLossModel(p_loss_length=p_loss_length, p_loss_init=p_loss_init)
 
-    with open("statistics.csv", mode="a") as file:
+    with open(output_file, mode="a") as file:
         writer = csv.writer(file)
         data = [graph.degree['0'], graph.length, p_loss_length, p_loss_init]
         writer.writerow(data)
@@ -87,6 +87,7 @@ def create_bipartite_network(name: str, graph: DiGraph) -> Network:
     network = Network(name=name)
     logger.debug("Adding nodes to network.")
     network.add_nodes([n for n in nodes.values()])
+    network.output_file = output_file
 
     # Add unique components to each node
     logger.debug("Adding unique components to nodes.")
