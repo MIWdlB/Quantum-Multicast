@@ -27,7 +27,7 @@ def init_logs() -> None:
         filename="logs.txt",
         filemode="w",
         format="%(asctime)s:%(levelname)s:%(filename)s - %(message)s",
-        level=logging.DEBUG,
+        level=logging.ERROR,
     )
 
     formatter = logging.Formatter(
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     if input != "yes":
         sys.exit()
 
-    for bipartite in [True, False]:
+    for bipartite in [False]:
         for num_nodes in range(min_nodes, max_nodes+1):
             type = "bipartite" if bipartite else "multipartite"
             

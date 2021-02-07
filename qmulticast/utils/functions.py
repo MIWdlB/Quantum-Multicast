@@ -139,7 +139,7 @@ def fidelity_from_node(source: Node) -> float:
         for qubit in qubits:
             discard(qubit)
 
-        if hits >= 100 or run >= 1000:
+        if hits >= 500 or run >= 5000:
             logger.debug("Logging results.")
             # assumes we have defined these at the top of the file.
             with open(network.output_file, mode="a") as file:
