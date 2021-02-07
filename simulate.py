@@ -1,7 +1,7 @@
 import netsquid as ns
 from netsquid.nodes import Network
 from netsquid.util.simlog import get_loggers
-from datetime import date
+from datetime import datetime
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
 from qmulticast.utils import create_network
@@ -15,6 +15,7 @@ ns.set_random_state(seed=123456)
 
 import logging
 import sys
+import os
 
 
 def init_logs() -> None:
@@ -93,12 +94,13 @@ if __name__ == "__main__":
     if input != "yes":
         sys.exit()
 
-    for bipartite in [False]:
+    # TODO this should be a path not a string
+    folder = "data/" + str(datetime.now())
+    os.mkdir(folder)
+    for bipartite in [True]:
         for num_nodes in range(min_nodes, max_nodes+1):
             type = "bipartite" if bipartite else "multipartite"
             
-            # TODO this should be a path not a string
-            folder = "data/" + str(date.today())
             output_file = folder + f"/statistics-type:{type}-nodes:{num_nodes}-len:{min_length}-{max_length}.csv"
             with open(output_file, mode="w") as file:
                 file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")

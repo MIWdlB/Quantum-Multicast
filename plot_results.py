@@ -45,11 +45,20 @@ def get_file_data(datafile) -> Dict:
 def get_all_data() -> Dict:
     """Get all the data from all files."""
 
-    files = os.listdir("data/")
+    folders = os.listdir("data/")
+
+    folder_times = ["15:23:24"]
+
+    folders = [f for f in folders if any([time in f for time in folder_times])]
     
     data = {}
 
     pattern = re.compile(pattern='nodes:(\d)')
+
+    files = []
+    for folder in folders:
+        files += [folder + "/" + file for file in os.listdir("data/" + folder)]
+    print(files)
 
     for file in files:
         num_nodes = pattern.search(file).groups()[0]
@@ -130,4 +139,4 @@ def plot_these(data: dict, type: str, num_nodes: List[int], measure: str) -> Non
 
 if __name__=="__main__":
     data = get_all_data()
-    plot_these(data, type="bipartite", num_nodes=[2,3,4,5], measure="rate")
+    plot_these(data, type="multipartite", num_nodes=[2,3,4,5], measure="rate")

@@ -64,7 +64,7 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
         "source_noise": None,
         "fibre_delay": FibreDelayModel(),
         "fibre_loss": FibreLossModel(p_loss_init, p_loss_init),
-        "depolar_noise": None,
+        "depolar_noise": DepolarNoiseModel(1e7),
     }
 
     # Set up state sampler.
