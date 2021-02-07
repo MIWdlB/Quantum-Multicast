@@ -6,6 +6,8 @@ from typing import Dict, List
 import numpy as np
 import matplotlib.pyplot as plt
 from pprint import pprint as print
+from datetime import date
+
 
 def get_file_data(datafile) -> Dict:
     """Plots the data"""
@@ -17,6 +19,8 @@ def get_file_data(datafile) -> Dict:
 
         fields = []
         temp = []
+
+
 
         # Header has passed read main data.
         for index, line in enumerate(reader):
@@ -114,7 +118,7 @@ def plot_these(data: dict, type: str, num_nodes: List[int], measure: str) -> Non
 
             plt.plot(x, y, label=f"{network} {num} nodes")
 
-    title = f"{type} {datakey}.jpg"
+    title = f"{type} {datakey}".title()
     plt.title(title)
     plt.xlabel("distance")
     plt.ylabel(measure)
@@ -122,8 +126,8 @@ def plot_these(data: dict, type: str, num_nodes: List[int], measure: str) -> Non
     #ax.set_yticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     plt.legend()
     plt.show()
-    plt.savefig(fname=f"data-{title}")
+    plt.savefig(fname=f"data-{title}.jpg")
 
 if __name__=="__main__":
     data = get_all_data()
-    plot_these(data, type="comparison", num_nodes=[2], measure="rate")
+    plot_these(data, type="bipartite", num_nodes=[2,3,4,5], measure="rate")

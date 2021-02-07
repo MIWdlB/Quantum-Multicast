@@ -5,6 +5,9 @@ simlogs.txt
 statistics.txt
 .csv
 
+# VS Code
+.vscode/
+
 #Plots
 graphplot.*
 

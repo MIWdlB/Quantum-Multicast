@@ -1,7 +1,7 @@
 import netsquid as ns
 from netsquid.nodes import Network
 from netsquid.util.simlog import get_loggers
-
+from datetime import date
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
 from qmulticast.utils import create_network
@@ -97,7 +97,9 @@ if __name__ == "__main__":
         for num_nodes in range(min_nodes, max_nodes+1):
             type = "bipartite" if bipartite else "multipartite"
             
-            output_file = f"data/statistics-type:{type}-nodes:{num_nodes}-len:{min_length}-{max_length}.csv"
+            # TODO this should be a path not a string
+            folder = "data/" + str(date.today())
+            output_file = folder + f"/statistics-type:{type}-nodes:{num_nodes}-len:{min_length}-{max_length}.csv"
             with open(output_file, mode="w") as file:
                 file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
                 file.writelines("runs, mean fidelity, fidelity std, loss rate, min time, mean time, time std, entanglement rate\n")
@@ -117,6 +119,7 @@ if __name__ == "__main__":
                 logger.debug("Created multipartite graph.")
                 network = create_network("bipartite-butterfly", graph, output_file, bipartite=bipartite)
                 logger.debug("Created multipartite Network.")
-                network = simulate_network(network, bipartite)
+                simulate_network(network, bipartite)
+
             print(f"Run time {time() - start_time}")
     print(f"Total sim time: {time()-start_time}")
