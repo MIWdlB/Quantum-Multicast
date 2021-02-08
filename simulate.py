@@ -83,28 +83,24 @@ def simulate_network(network: Network, bipartite = True, source_val = "0" ) -> N
 
 if __name__ == "__main__":
     min_length = 0
-    max_length = 6
+    max_length = 0.25
     steps = 100
     min_nodes = 1
-    max_nodes = 6
+    max_nodes = 1
 
     start_time = time()
-
-    input= input("Are you sure you want to start and overwrite data? Type 'yes'\t")
-    if input != "yes":
-        sys.exit()
 
     # TODO this should be a path not a string
     folder = "data/" + str(datetime.now())
     os.mkdir(folder)
-    for bipartite in [True]:
+    for bipartite in [True, False]:
         for num_nodes in range(min_nodes, max_nodes+1):
             type = "bipartite" if bipartite else "multipartite"
             
             output_file = folder + f"/statistics-type:{type}-nodes:{num_nodes}-len:{min_length}-{max_length}.csv"
             with open(output_file, mode="w") as file:
                 file.writelines("number of edges, edge length, p_loss_length, p_loss_init\n")
-                file.writelines("runs, mean fidelity, fidelity std, loss rate, min time, mean time, time std, entanglement rate\n")
+                file.writelines("hits, mean fidelity, fidelity std, loss rate, min time, mean time, time std, entanglement rate\n")
 
             logger.debug("Starting program.")
             for length in np.linspace(min_length, max_length, steps):

@@ -17,6 +17,8 @@ from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
 
+from qmulticast.models.ceryslossmodel import CerysLossModel
+
 from networkx import DiGraph
 import csv
 from .functions import gen_GHZ_ket
@@ -56,14 +58,14 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
     network.graph = graph
 
     # Delay and noise models to use for components.
-    p_loss_length = 1.5811388300841898
+    p_loss_length = 2
     p_loss_init = 0.2
 
     models = {
-        "source_delay": FixedDelayModel(),
+        "source_delay": FixedDelayModel(delay=0),
         "source_noise": None,
         "fibre_delay": FibreDelayModel(),
-        "fibre_loss": FibreLossModel(p_loss_init, p_loss_init),
+        "fibre_loss": CerysLossModel(p_loss_init, p_loss_init),
         "depolar_noise": DepolarNoiseModel(1e7),
     }
 

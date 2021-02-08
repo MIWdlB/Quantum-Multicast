@@ -17,7 +17,7 @@ from netsquid.util.simtools import sim_time, sim_stop
 
 logger = logging.getLogger(__name__)
 
-res_logger = logging.Logger(name='results', level=logging.DEBUG)
+res_logger = logging.Logger(name='results', level=logging.ERROR)
 fhandler = logging.FileHandler(filename="results.txt", mode='w')
 formatter = logging.Formatter(
     "%(asctime)s:%(levelname)s:%(filename)s - %(message)s"
@@ -56,11 +56,14 @@ def fidelity_from_node(source: Node) -> float:
     recievers = [str(reciever) for _, reciever in network.graph.out_edges(source.name)]
     
     # define multipartite receivers 
+
     rate = log_entanglement_rate()
+    next(rate)
     yield
     run = 0
     hits = 0
     lost_qubits = 0
+    entanglement_rate = None
     min_time = None
     mean_time = None
     time_std = None
@@ -126,8 +129,8 @@ def fidelity_from_node(source: Node) -> float:
             logger.debug("Min Run time: %s", min_time)
 
             if mean_time == 0:
-                logger.error("No time has passed - entanglement rate infinite.") 
-                res_logger.error("No time has passed - entanglement rate infinite.") 
+                logger.warning("No time has passed - entanglement rate infinite.") 
+                res_logger.warning("No time has passed - entanglement rate infinite.") 
             elif min_time and mean_time:
                 res_logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
                 logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
@@ -139,12 +142,14 @@ def fidelity_from_node(source: Node) -> float:
         for qubit in qubits:
             discard(qubit)
 
-        if hits >= 100 or run >= 1000:
+        if hits >= 200 or run >= 100000:
             logger.debug("Logging results.")
             # assumes we have defined these at the top of the file.
             with open(network.output_file, mode="a") as file:
                 writer = csv.writer(file)
-                data = [run, mean_fidelity, fidelity_std, loss_rate, min_time, mean_time, time_std, min_time/mean_time]
+                if min_time and mean_time:
+                    entanglement_rate = min_time/mean_time
+                data = [hits, mean_fidelity, fidelity_std, loss_rate, min_time, mean_time, time_std, entanglement_rate]
                 writer.writerow(data)
             sim_stop()
         
@@ -154,6 +159,7 @@ def log_entanglement_rate():
     """Generator to find the entanglement rate."""
     vals = np.array([sim_time(ns.SECOND)])
     logger.info("Entanglement rate initialised.")
+    yield
 
     while True:
         time = sim_time(ns.SECOND)
