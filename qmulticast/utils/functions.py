@@ -4,6 +4,7 @@
 import logging
 
 import numpy as np
+import csv
 import netsquid as ns
 from netsquid.nodes import Node,Network
 from netsquid.qubits.dmtools import DMRepr
@@ -16,7 +17,7 @@ from netsquid.util.simtools import sim_time, sim_stop
 
 logger = logging.getLogger(__name__)
 
-res_logger = logging.Logger(name='results', level=logging.DEBUG)
+res_logger = logging.Logger(name='results', level=logging.ERROR)
 fhandler = logging.FileHandler(filename="results.txt", mode='w')
 formatter = logging.Formatter(
     "%(asctime)s:%(levelname)s:%(filename)s - %(message)s"
@@ -51,50 +52,35 @@ def fidelity_from_node(source: Node) -> float:
     logger.debug(f"Calculating fidelity of GHZ state from source {source}")
     vals = np.array([])
 
-    network = source.supercomponent
-    is_multipartite = ("multipartite" in network.name) # hack
-    edges = [
-        name.lstrip("qsource-")
-        for name in source.subcomponents.keys()
-        if "qsource" in name
-    ]
-    recievers = {edge.split("-")[-1]: edge for edge in edges} 
+    network = source.supercomponent # hack
+    recievers = [str(reciever) for _, reciever in network.graph.out_edges(source.name)]
     
     # define multipartite receivers 
+
     rate = log_entanglement_rate()
+    next(rate)
     yield
     run = 0
+    hits = 0
     lost_qubits = 0
+    entanglement_rate = None
     min_time = None
     mean_time = None
+    time_std = None
     mean_fidelity = None
     loss_rate = None
+    fidelity_std = None
     while True:
-        if run > 2:
-            pass
-        elif run == 1:
-            first_time = sim_time(ns.SECOND)
+        if run == 1:
+            min_time = sim_time(ns.SECOND)
         elif run == 2:
             second_time = sim_time(ns.SECOND)
-            min_time = second_time-first_time
+            min_time = second_time-min_time
 
         run +=1
         qubits = []
         qmems = []
         for node in network.nodes.values():
-            if is_multipartite:
-                if node is source:
-                    qubits += node.qmemory.peek(0)
-                    qmems.append(node.qmemory)
-                else:
-                    mem_pos = node.qmemory.used_positions # goes in a semi random mem location
-                    if (mem_pos ==  []):
-                        logger.debug("Node %s has not recieved a qubit.", node.name)
-                        lost_qubits += 1
-                    else:
-                        qubits = qubits + node.qmemory.peek(mem_pos) # for current stuff
-                        qmems.append(node.qmemory)
-            else:
                 if node is source:
                     # Assume that the source has a qubit
                     # and that it's in the 0 position.
@@ -103,7 +89,7 @@ def fidelity_from_node(source: Node) -> float:
 
                 if node.name in recievers:
                     mem_pos = node.qmemory.get_matching_qubits(
-                        "edge", value=recievers[node.name]
+                        "origin", value=source.name
                     )
                     if not mem_pos:
                         logger.debug("Node %s has not recieved a qubit.", node.name)
@@ -113,12 +99,13 @@ def fidelity_from_node(source: Node) -> float:
 
         # Bit ugly this walrus but I haven't been able to
         # use it yet and I think it's cute.
-        if (lq := len(qubits)) - (le := len(edges)) != 1 and not is_multipartite:
+        if (lq := len(qubits)) - (le := len(recievers)) != 1:
             logger.warning("Some GHZ qubits were lost!")
             logger.warning("Number of edges: %s", le)
             logger.warning("Number of qubits: %s (expecting %s)", lq, (le+1))
             
         else:
+            hits += 1
             logger.debug("GHZ Qubit(s) %s", qubits)
             fidelity_val = fidelity(qubits, gen_GHZ_ket(len(qubits)), squared=True)
             vals = np.append(vals, fidelity_val)
@@ -132,15 +119,18 @@ def fidelity_from_node(source: Node) -> float:
             logger.info(f"Run {run} Fidelity: {fidelity_val}")
             logger.info(f"Average Fidelity: {mean_fidelity}")
             logger.info(f"Qubit loss rate: {loss_rate}")
+            fidelity_std = np.std(vals)
             
-            mean_time = next(rate)
+            mean_time, time_std = next(rate)
 
+            res_logger.debug("Average Run time: %s", mean_time)
+            logger.debug("Average Run time: %s", time_std)
             res_logger.debug("Min Run time: %s", min_time)
             logger.debug("Min Run time: %s", min_time)
 
             if mean_time == 0:
-                logger.error("No time has passed - entanglement rate infinite.") 
-                res_logger.error("No time has passed - entanglement rate infinite.") 
+                logger.warning("No time has passed - entanglement rate infinite.") 
+                res_logger.warning("No time has passed - entanglement rate infinite.") 
             elif min_time and mean_time:
                 res_logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
                 logger.info(f"Entanglement Rate: {min_time/mean_time}Hz")
@@ -152,10 +142,15 @@ def fidelity_from_node(source: Node) -> float:
         for qubit in qubits:
             discard(qubit)
 
-        if run >= 100:
-            with open("statistics.txt", mode="a") as file:
-                file.writelines("runs, mean_fidelity, loss_rate, min_time, mean_time, entanglement_rate\n")
-                file.writelines(f"{run}, {mean_fidelity}, {loss_rate}, {min_time}, {mean_time}, {min_time/mean_time}\n\n")
+        if hits >= 200 or run >= 100000:
+            logger.debug("Logging results.")
+            # assumes we have defined these at the top of the file.
+            with open(network.output_file, mode="a") as file:
+                writer = csv.writer(file)
+                if min_time and mean_time:
+                    entanglement_rate = min_time/mean_time
+                data = [hits, mean_fidelity, fidelity_std, loss_rate, min_time, mean_time, time_std, entanglement_rate]
+                writer.writerow(data)
             sim_stop()
         
         yield
@@ -176,4 +171,8 @@ def log_entanglement_rate():
         mean_diff = np.mean(vals[1:] - vals[0:-1])
         res_logger.debug("Average Run time: %s", mean_diff)
         logger.debug("Average Run time: %s", mean_diff)
-        yield mean_diff
+        
+        std = np.std(vals)
+        output = (mean_diff, std)
+
+        yield output

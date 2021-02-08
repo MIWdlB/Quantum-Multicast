@@ -6,25 +6,21 @@ To find, for a given soruce node, at what rate and fidelity GHZ states can be pr
 
 ## Usage
 
-The current functionality of our package is called from `bipartite.py`, which creates a network from a sample graph and shares bipartite quantum entanglements from the source node. 
+The current functionality of our package is called from `simulate.py`, which creates networks with a range of numbers of remote nodes, and begins a simulation for each number at various edge lengths.
 
-### Graph Class
-
-`utils/graph.py` Defines a basic graph, with nodes and weighted edges. Edges are assumed to be undirected but are stored as two directed edges, with weights defaulting to one.
-
-Examples are given in `utils/graphlibrary.py`.
+Data from simulations is output to `data/` with filenames indicating the entanglement type, number of nodes and length range included.
 
 ### Network creation
 
-Given a graph a `network` object can be created using the `create_bipartite_network` function in `utils/bipartite_network.py`.
-This will create `node` objects foreach node and add a channel for each directed edge in the graph, with an associated source for each outward edge. Nodes are also given `QuantumProcessor` objects with a number of memory slots equal to the number of directed edges to and from the node.
+Given a graph a `network` object can be created using the `create_network` function in `utils/create_network.py`.
+This will create `node` objects foreach node and add a channel for each directed edge in the graph. Quantum sources are added to bipartite networks one per edge and in multipartite networks one per node. Nodes are also given `QuantumProcessor` objects with a number of memory slots equal to the number of directed edges to and from the node.
 
 ### Connections & Channels 
 `connection`s are a network subcomponent which contains a `channel` for information. These can be classical only, quantum only or allow both forms of communication. Each `channel` has associated `ports` at each end, inputs of which are forwarded to memory locations of the recieving node's `QuantumProcessor`.
 
 ### Protocols
 
-Protocols are sets of instructions run on a `node`. We have one protocol `BipartiteProtocol` which handles both the case in which a node is a source and when it is a reciever.
+Protocols are sets of instructions run on a `node`. We define protocols an `InputProtocol` to be used in both bipartite and multipartite networks. This is assigned to the reciver nodes. The `OutputProtocol` is used as a base class to `BipartiteOutputProtocol` and `MultipartiteOutputProtocol`. These are assigned to the source node dependent on network type.
 
 Source nodes will trigger a `qsource` associated with each connection to create Bell pairs. One of each of these pair will be stored in memory, the other will be send to the connected node.
 

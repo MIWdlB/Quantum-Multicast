@@ -12,14 +12,10 @@ from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
 from qmulticast.programs import CreateGHZ
 from qmulticast.utils.functions import log_entanglement_rate
-from .bipartiteprotocol import BipartiteInputProtocol
+from .inputprotocol import QuantumInputProtocol
+from .outputprotocol import OutputProtocol
+
 logger = logging.getLogger(__name__)
-
-handler = logging.FileHandler(filename="fidelity-data.txt", mode="w")
-
-res_logger = logging.Logger(name="results")
-res_logger.addHandler(handler)
-
 
 class MultipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
@@ -64,7 +60,7 @@ class MultipartiteProtocol(NodeProtocol):
             self.add_subprotocol(MultipartiteOutputProtocol(self.node))
 
         if self._input:
-            self.add_subprotocol(BipartiteInputProtocol(self.node))
+            self.add_subprotocol(QuantumInputProtocol(self.node))
 
     def run(self):
         """Run the protocol."""
@@ -72,31 +68,12 @@ class MultipartiteProtocol(NodeProtocol):
         logger.debug(f"Running bipartite protocol on node {node.name}.")
         self.start_subprotocols()
 
-class MultipartiteOutputProtocol(NodeProtocol):
+class MultipartiteOutputProtocol(OutputProtocol):
     """ Defines behviour needed when a source expects input qubits."""
 
     def __init__(self, node: Node, name: Optional[str] = None):
         super().__init__(node=node, name=name)
         self._mem_size = self.node.qmemory.num_positions
-        mem_positions = self.node.qmemory.num_positions
-        mem_ports = self.node.qmemory.ports
-        self.fidelity = fidelity_from_node(self.node)
-        self.q_in_ports = [mem_ports[f"qin{num}"] for num in range(1, mem_positions, 2)]
-
-        self.c_in_ports = [
-            port for port in self.node.ports.values() if "cin" in port.name
-        ]
-
-    def transmission_time(self, port_name: str) -> None:
-        """Wait for a qubit to be received at the end of a channel."""
-
-        connection = self.node.ports[port_name].connected_port.component
-        channel = connection.channel_AtoB
-
-        delay = channel.compute_delay()
-        logger.debug(f"Found transmission time {delay} for channel {channel.name}")
-
-        return delay * 1.0000001
 
     def run(self):
         """Protocol for reciver."""
@@ -120,19 +97,11 @@ class MultipartiteOutputProtocol(NodeProtocol):
 
                 self.send_signal(Signals.SUCCESS) 
                 #yield self.await_port_input(node.qmemory.ports["qin0"])
-                await_recieved = []
-                help_me = []
-                for port_name in self.node.ports:
-                    #help_me.append(port_name)
-                    if 'out' in port_name:
-                        help_me.append(port_name)
-                        await_recieved.append(self.await_timer(self.transmission_time(port_name)))
-
-                # await_recieved = [
-                #     self.await_timer(self.transmission_time(port_name))
-                #     for port_name in self.node.ports
-                #     if "qout" in port_name
-                # ]
+                await_recieved = [
+                    self.await_timer(self._transmission_time(port_name)) 
+                    for port_name in self.node.ports 
+                    if "qout" in port_name
+                ]
                 logger.debug("Waiting transmission time.")
                 yield reduce(operator.and_, await_recieved)
                 #yield self.await_timer(1e5) # should be max RTT (round trip time)
