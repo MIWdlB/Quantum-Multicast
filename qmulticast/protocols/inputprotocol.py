@@ -16,7 +16,7 @@ class QuantumInputProtocol(NodeProtocol):
 
     def __init__(self, node: Node, name: Optional[str] = None) -> None:
         """Initialise
-        
+
         Paramters
         ---------
         node : Node

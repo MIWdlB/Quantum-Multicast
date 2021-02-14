@@ -16,6 +16,7 @@ from .inputprotocol import QuantumInputProtocol
 
 logger = logging.getLogger(__name__)
 
+
 class BipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
 
@@ -93,7 +94,7 @@ class BipartiteOutputProtocol(OutputProtocol):
 
     def _do_corrections(self, prog_output: dict) -> None:
         """Correct qubits for GHZ state creation.
-        
+
         Parameters
         ---------
         prog_output : dict

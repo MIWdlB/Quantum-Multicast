@@ -17,7 +17,7 @@ class MoveInput(NodeProtocol):
 
     def __init__(self, node: Node, mem_port: Port) -> None:
         """Initialise
-        
+
         Paramters
         ---------
         node : Node

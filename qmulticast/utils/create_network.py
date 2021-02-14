@@ -9,10 +9,8 @@ import logging
 from typing import Any, Dict, Hashable
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import (ClassicalChannel, QuantumChannel,
-                                 QuantumProcessor)
-from netsquid.components.models.delaymodels import (FibreDelayModel,
-                                                    FixedDelayModel)
+from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
+from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
 from netsquid.components.models.qerrormodels import DepolarNoiseModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
@@ -44,7 +42,7 @@ def create_network(
         The file to output data about network constants to.
     bipartite: bool
         True for bipartite network, false for multipartite.
-    noise_rate : float 
+    noise_rate : float
         Constant to use for noise models.
 
     Returns
@@ -122,18 +120,16 @@ def create_network(
     return network
 
 
-def unpack_edge_values(
-    node: str, graph: DiGraph
-) -> Dict[Hashable, Any]:
+def unpack_edge_values(node: str, graph: DiGraph) -> Dict[Hashable, Any]:
     """Return the start, end and weight of a nodes edges.
-    
+
     Parameters
     ----------
     node : str
         The name of the node.
     graph : networkx.DiGraph
         Graph representing the network.
-    
+
     Returns
     -------
     Dict[Hashable, float | int ]
@@ -153,8 +149,8 @@ def unpack_edge_values(
 
 
 def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
-    """ Add a processor to the node.
-    
+    """Add a processor to the node.
+
     Parameters
     ----------
     node : str
@@ -186,7 +182,7 @@ def add_mulitpartite_source(
     node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler
 ) -> None:
     """Adds a single multipartite source.
-    
+
     Parameters
     ----------
     node : str

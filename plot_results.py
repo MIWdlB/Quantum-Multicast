@@ -31,7 +31,7 @@ def parseargs() -> argparse.Namespace:
         "-d",
         type=str,
         default=["last"],
-        nargs='+',
+        nargs="+",
         required=False,
         help="A list of names or patterns defining which subdirectories of 'data' to use. \
             If not provided the most recent dataset will be used.",
@@ -40,7 +40,7 @@ def parseargs() -> argparse.Namespace:
         "--link_numbers",
         "-l",
         type=int,
-        nargs='+',
+        nargs="+",
         required=True,
         help="The number of links to plot data for.",
     )
@@ -55,9 +55,9 @@ def parseargs() -> argparse.Namespace:
         "--noise_rates",
         "-n",
         type=float,
-        nargs='+',
+        nargs="+",
         default=[1e7],
-        help="The noise rate(s) to plot data for."
+        help="The noise rate(s) to plot data for.",
     )
     args = parser.parse_args()
     args.type += "partite" if args.type in ["bi", "multi"] else ""
@@ -66,7 +66,7 @@ def parseargs() -> argparse.Namespace:
 
 def analytic_data(network: str) -> List[Tuple[np.ndarray, np.ndarrray, int]]:
     """Define plottable datasets for the analytic model of each network type.
-    
+
     Parameters
     ----------
     network : "bipartite", "multipartite"
@@ -105,7 +105,7 @@ def analytic_data(network: str) -> List[Tuple[np.ndarray, np.ndarrray, int]]:
 
 def get_file_data(datafile: Path) -> Dict:
     """Extract data from CSV file.
-    
+
     Parameters
     ----------
     datafile : Path
@@ -145,7 +145,7 @@ def get_file_data(datafile: Path) -> Dict:
 
 def get_all_data(folder_names: str) -> Dict:
     """Get all the data from all files.
-    
+
     Parameters
     ----------
     folder_names : str

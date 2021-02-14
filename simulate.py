@@ -14,6 +14,7 @@ from qmulticast.utils.graphlibrary import *
 
 ns.set_random_state(seed=123456)
 
+
 def init_logs() -> None:
     """Set up logging.
 

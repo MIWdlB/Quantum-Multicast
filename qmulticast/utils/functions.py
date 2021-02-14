@@ -168,7 +168,7 @@ def fidelity_from_node(source: Node) -> None:
 
 def log_entanglement_rate() -> Tuple[float, float]:
     """Generator to find the entanglement rate.
-    
+
     Returns
     -------
     Tuple[float, float]

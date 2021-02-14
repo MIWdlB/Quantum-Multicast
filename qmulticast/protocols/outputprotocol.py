@@ -16,7 +16,7 @@ class OutputProtocol(NodeProtocol):
 
     def __init__(self, node: Node, name: Optional[str] = None) -> None:
         """Initialise
-        
+
         Paramters
         ---------
         node : Node
@@ -38,7 +38,7 @@ class OutputProtocol(NodeProtocol):
 
     def _transmission_time(self, port_name: str) -> None:
         """Wait for a qubit to be received at the end of a channel.
-        
+
         Paramters
         ---------
         port_name : str
