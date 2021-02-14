@@ -1,9 +1,7 @@
 """Defines the base output protocol."""
 
 import logging
-import operator
-from functools import reduce
-from typing import List, Optional
+from typing import Optional
 
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
@@ -16,7 +14,16 @@ logger = logging.getLogger(__name__)
 class OutputProtocol(NodeProtocol):
     """Defines behaviour of node when outputting qubits"""
 
-    def __init__(self, node: Node, name: Optional[str] = None):
+    def __init__(self, node: Node, name: Optional[str] = None) -> None:
+        """Initialise
+        
+        Paramters
+        ---------
+        node : Node
+            The node on which the protocol should be run.
+        name : str
+            A name to assign the protocol.
+        """
         super().__init__(node=node, name=name)
         logger.debug("Initialing base output protocol.")
         self.fidelity = fidelity_from_node(self.node)
@@ -30,7 +37,13 @@ class OutputProtocol(NodeProtocol):
                 port.tx_output(f"Delete qubit {edge}")
 
     def _transmission_time(self, port_name: str) -> None:
-        """Wait for a qubit to be received at the end of a channel."""
+        """Wait for a qubit to be received at the end of a channel.
+        
+        Paramters
+        ---------
+        port_name : str
+            The name of an ns.Port object to find the transmission time of.
+        """
 
         connection = self.node.ports[port_name].connected_port.component
         channel = connection.channel_AtoB
@@ -38,6 +51,8 @@ class OutputProtocol(NodeProtocol):
         delay = channel.compute_delay()
         logger.debug(f"Found transmission time {delay} for channel {channel.name}")
 
+        # Have to wait slightly longer than transmission time as NS
+        # doesn't let us have access to things at the instant they happen.
         return delay * 1.0000001
 
     def run(self) -> None:

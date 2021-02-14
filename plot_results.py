@@ -3,16 +3,15 @@ import argparse
 import csv
 import os
 import re
-from datetime import date
 from pathlib import Path
 from pprint import pprint as print
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def parseargs() -> None:
+def parseargs() -> argparse.Namespace:
     """Parse args for plotter."""
     parser = argparse.ArgumentParser(description="Plot data from network simulations.")
     parser.add_argument(
@@ -65,7 +64,7 @@ def parseargs() -> None:
     return args
 
 
-def analytic_data(network: str) -> None:
+def analytic_data(network: str) -> List[Tuple[np.ndarray, np.ndarrray, int]]:
     """Define plottable datasets for the analytic model of each network type.
     
     Parameters
@@ -100,6 +99,8 @@ def analytic_data(network: str) -> None:
         return rates
     elif network == "multipartite":
         return [(d, rate3GHZ, 2)]
+    else:
+        raise ValueError("network must be 'bipartite' or 'multipartite'.")
 
 
 def get_file_data(datafile: Path) -> Dict:

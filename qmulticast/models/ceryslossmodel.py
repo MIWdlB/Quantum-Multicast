@@ -71,22 +71,18 @@ class CerysLossModel(QuantumErrorModel):
             raise ValueError
         self.properties["p_loss_length"] = value
 
-    def error_operation(self, qubits, delta_time=0, **kwargs):
+    def error_operation(self, qubits, **kwargs):
         """Error operation to apply to qubits.
 
         Parameters
         ----------
         qubits : tuple of :obj:`~netsquid.qubits.qubit.Qubit`
             Qubits to apply noise to.
-        delta_time : float, optional
-            Time qubits have spent on a component [ns].
-
         """
         # self.apply_loss(qubits, delta_time, **kwargs)
         for idx, qubit in enumerate(qubits):
             if qubit is None:
                 continue
-            # prob_loss = 1 - (1 - self.p_loss_init) * np.power(10, - kwargs['length'] * self.p_loss_length / 10)
 
             prob_loss = 1 - (1 - self.p_loss_init) * np.exp(
                 kwargs["length"] * np.log(0.1) / self.p_loss_length

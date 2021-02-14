@@ -6,15 +6,14 @@ TODO maybe make this a subclass of the Network class and build things in init.
 
 import csv
 import logging
-from typing import Any, Dict, Hashable, Tuple
+from typing import Any, Dict, Hashable
 
 import netsquid.qubits.ketstates as ks
 from netsquid.components import (ClassicalChannel, QuantumChannel,
                                  QuantumProcessor)
 from netsquid.components.models.delaymodels import (FibreDelayModel,
                                                     FixedDelayModel)
-from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
-                                                     FibreLossModel)
+from netsquid.components.models.qerrormodels import DepolarNoiseModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
@@ -41,6 +40,12 @@ def create_network(
         The name of the network.
     graph : Graph
         Graph representing the desired network.
+    output_file : Pathlike
+        The file to output data about network constants to.
+    bipartite: bool
+        True for bipartite network, false for multipartite.
+    noise_rate : float 
+        Constant to use for noise models.
 
     Returns
     -------
@@ -119,8 +124,21 @@ def create_network(
 
 def unpack_edge_values(
     node: str, graph: DiGraph
-) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
-    """Return the start, end and weight of a nodes edges."""
+) -> Dict[Hashable, Any]:
+    """Return the start, end and weight of a nodes edges.
+    
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    
+    Returns
+    -------
+    Dict[Hashable, float | int ]
+        A dict of names of edge ends and weightings.
+    """
     logger.debug("Unpacking edges.")
 
     edges = {}
@@ -135,8 +153,15 @@ def unpack_edge_values(
 
 
 def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
-    """ Add a processor to the node"""
-    # node_name = node.name
+    """ Add a processor to the node.
+    
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     logger.debug(f"Node: {node.name}.")
 
     node_connections = unpack_edge_values(node, graph)
@@ -159,7 +184,16 @@ def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
 
 def add_mulitpartite_source(
     node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler
-):
+) -> None:
+    """Adds a single multipartite source.
+    
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     node_name = node.name
     logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
     num_ports = state_sampler._num_qubits
@@ -181,7 +215,18 @@ def add_mulitpartite_source(
     qsource.ports["qout0"].connect(node.subcomponents["qmemory"].ports[f"qin{0}"])
 
 
-def add_connections(node: Node, graph: DiGraph, models: Dict):
+def add_connections(node: Node, graph: DiGraph, models: Dict) -> None:
+    """Add connections to the network.
+
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    models : Dict
+        Definitions of noise and loss models.
+    """
     logger.debug(f"Node: {node.name}")
 
     network = node.supercomponent
@@ -243,6 +288,17 @@ def add_connections(node: Node, graph: DiGraph, models: Dict):
 def add_bipartite_sources(
     node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler
 ) -> None:
+    """Add a source for each connection from a bipartite source.
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    models : Dict
+        Definitions of noise and loss models.
+
+    """
     node_connections = unpack_edge_values(node, graph)
 
     for end in node_connections.keys():
@@ -265,7 +321,15 @@ def add_bipartite_sources(
         node.add_subcomponent(qsource)
 
 
-def redirect_outputs(node: Node, graph: DiGraph):
+def redirect_outputs(node: Node, graph: DiGraph) -> None:
+    """Redirect source output to connection ports.
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     mem_position = 0
     node_output = 1
     node_connections = unpack_edge_values(node, graph)
@@ -297,7 +361,13 @@ def redirect_outputs(node: Node, graph: DiGraph):
 
 
 def redirect_inputs(node: Node) -> None:
-    """Redirect input ports to qmemory."""
+    """Redirect input ports to qmemory.
+
+     Parameters
+    ----------
+    node : str
+        The name of the node.
+    """
     # Now go through each node and assign the port
     # for the input from each channel.
     mem_position = 1

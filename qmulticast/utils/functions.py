@@ -3,14 +3,12 @@
 # define a generic GHZ
 import csv
 import logging
+from typing import Tuple
 
 import netsquid as ns
-import netsquid.qubits.qubitapi as qapi
 import numpy as np
-from netsquid.nodes import Network, Node
-from netsquid.qubits.dmtools import DMRepr
-from netsquid.qubits.qrepr import convert_to
-from netsquid.qubits.qubitapi import discard, fidelity, measure, reduced_dm
+from netsquid.nodes import Node
+from netsquid.qubits.qubitapi import discard, fidelity
 from netsquid.util.simtools import sim_stop, sim_time
 
 logger = logging.getLogger(__name__)
@@ -24,12 +22,19 @@ res_logger.addHandler(fhandler)
 
 def gen_GHZ_ket(n) -> np.ndarray:
     """Create a GHZ state of n qubits.
+
     Wants a list returned in the form of weights of each element of ket
     e.g. |X> =  0.5|00> + 0|01> + 0|10> 0.5|11> => [[0.5],[0],[0],[0.5]]
+
     Parameters
     ----------
     n : int
         The number of qubits.
+
+    Returns
+    -------
+    numpy.ndarry
+        Array representation of GHZ state.
     """
     k = 2 ** n
     x = np.zeros((k, 1), dtype=complex)
@@ -38,7 +43,7 @@ def gen_GHZ_ket(n) -> np.ndarray:
     return x / np.sqrt(2)
 
 
-def fidelity_from_node(source: Node) -> float:
+def fidelity_from_node(source: Node) -> None:
     """Calculate the fidelity of GHZ state creation.
 
     Parameters
@@ -161,8 +166,14 @@ def fidelity_from_node(source: Node) -> float:
         yield
 
 
-def log_entanglement_rate():
-    """Generator to find the entanglement rate."""
+def log_entanglement_rate() -> Tuple[float, float]:
+    """Generator to find the entanglement rate.
+    
+    Returns
+    -------
+    Tuple[float, float]
+        The entanglement rate and standard diviation.
+    """
     vals = np.array([sim_time(ns.SECOND)])
     logger.info("Entanglement rate initialised.")
     yield

@@ -15,8 +15,16 @@ logger = logging.getLogger(__name__)
 class MoveInput(NodeProtocol):
     """Class to watch for any change to the memory."""
 
-    def __init__(self, node: Node, mem_port: Port):
-        """Initialise the subprotocol"""
+    def __init__(self, node: Node, mem_port: Port) -> None:
+        """Initialise
+        
+        Paramters
+        ---------
+        node : Node
+            The node on which the protocol should be run.
+        name : str
+            A name to assign the protocol.
+        """
         super().__init__()
         self.node = node
         self.port = mem_port

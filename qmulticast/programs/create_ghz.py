@@ -1,7 +1,6 @@
 """Program to entangle states to GHZ."""
 
 import logging
-import pdb
 from typing import List
 
 from netsquid.components.instructions import INSTR_CNOT, INSTR_H, INSTR_MEASURE
@@ -12,7 +11,18 @@ logger = logging.getLogger(__name__)
 
 # TODO Use physical gates for noise
 class CreateGHZ(QuantumProgram):
-    """Turn the bell states into cool GHZ states."""
+    """Turn the bell states into cool GHZ states.
+    
+    Properties
+    ----------
+    bell_qubits : List[int]
+        A list of memory positions to find qubits at.
+
+    Methods
+    -------
+    program
+        Defines the program to be run.
+    """
 
     default_num_qubits = -1
 
