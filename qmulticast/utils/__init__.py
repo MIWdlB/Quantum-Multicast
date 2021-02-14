@@ -12,4 +12,4 @@ __all__ = [
     fidelity_from_node,
     log_entanglement_rate,
     create_network,
-    ]
+]

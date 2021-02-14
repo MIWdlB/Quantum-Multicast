@@ -1,3 +1,7 @@
+#Data and plots 
+data/*
+plots/*
+
 # Logfiles
 logs.txt
 results.txt

@@ -1,5 +1,6 @@
 """Defines the butterfly graph"""
 import logging
+
 import networkx as nx
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,11 @@ class TriangleGraph(nx.DiGraph):
     def __init__(self, length: float = 1):
         super().__init__()
         logger.debug("Creating triangle graph.")
-        edges = {0: {1: length, 2: length}, 1: {0: length, 2: length}, 2: {0: length, 1: length}}
+        edges = {
+            0: {1: length, 2: length},
+            1: {0: length, 2: length},
+            2: {0: length, 1: length},
+        }
         for start in edges:
             for end in edges[start]:
                 self.add_edge(str(start), str(end), weight=edges[start][end])

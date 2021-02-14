@@ -55,6 +55,7 @@ class QuantumInputProtocol(NodeProtocol):
 
 class ClassicalInputPortProtocol(NodeProtocol):
     """For listening on classical ports. NOT IN USE."""
+
     def __init__(self, node: Node, port: Port, name: Optional[str] = None) -> None:
         super().__init__(node=node, name=name)
         self.port = port

@@ -1,3 +1,5 @@
+import logging
+import os
 from datetime import datetime
 from time import time
 
@@ -5,18 +7,12 @@ import netsquid as ns
 import netsquid.qubits.qubitapi as qapi
 import numpy as np
 from netsquid.nodes import Network
-from netsquid.util.simlog import get_loggers
 
 from qmulticast.protocols import BipartiteProtocol, MultipartiteProtocol
-from qmulticast.utils import create_network, gen_GHZ_ket
+from qmulticast.utils import create_network
 from qmulticast.utils.graphlibrary import *
 
 ns.set_random_state(seed=123456)
-
-import logging
-import os
-import sys
-
 
 def init_logs() -> None:
     """Set up logging.

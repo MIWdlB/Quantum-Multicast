@@ -2,7 +2,6 @@
 import logging
 import operator
 from functools import reduce
-from qmulticast.protocols.outputprotocol import OutputProtocol
 from typing import List, Optional
 
 from netsquid.components.component import Port
@@ -15,11 +14,14 @@ from netsquid.qubits.qubitapi import fidelity, reduced_dm
 from netsquid.util.simlog import get_loggers
 
 from qmulticast.programs import CreateGHZ
+from qmulticast.protocols.outputprotocol import OutputProtocol
 from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
 from qmulticast.utils.functions import log_entanglement_rate
+
 from .inputprotocol import QuantumInputProtocol
 
 logger = logging.getLogger(__name__)
+
 
 class BipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
@@ -57,7 +59,9 @@ class BipartiteProtocol(NodeProtocol):
             self.add_subprotocol(BipartiteOutputProtocol(self.node))
 
         if self._input:
-            self.add_subprotocol(QuantumInputProtocol(self.node, name=f"input-{self.node.name}"))
+            self.add_subprotocol(
+                QuantumInputProtocol(self.node, name=f"input-{self.node.name}")
+            )
 
     def run(self):
         """Run the protocol."""
@@ -105,7 +109,7 @@ class BipartiteOutputProtocol(OutputProtocol):
                 if value == [0]:
                     logger.debug("No correction for measure %s", record)
                     continue
-                
+
                 logger.debug("Correcting for measure %s", record)
                 qubit_no = int(record.lstrip("measure-"))
                 qubit = self.node.qmemory.peek(qubit_no)[0]
@@ -123,9 +127,7 @@ class BipartiteOutputProtocol(OutputProtocol):
                     continue
 
                 end_qmemory.execute_instruction(
-                    instruction = INSTR_X,
-                    qubit_mapping = qubit,
-                    physical = False
+                    instruction=INSTR_X, qubit_mapping=qubit, physical=False
                 )
 
                 logger.debug("Completed correction on node %s", end_name)
@@ -155,7 +157,7 @@ class BipartiteOutputProtocol(OutputProtocol):
 
             # TODO how do we find the minimum wait time needed in a sensible way?
             # Could await on ports using
-            #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
+            # self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
             await_recieved = [
                 self.await_timer(self._transmission_time(port_name))
                 for port_name in self.node.ports

@@ -9,13 +9,15 @@ from netsquid.protocols import NodeProtocol
 from netsquid.protocols.protocol import Signals
 from netsquid.qubits.qubitapi import fidelity, reduced_dm
 
-from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
 from qmulticast.programs import CreateGHZ
+from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
 from qmulticast.utils.functions import log_entanglement_rate
+
 from .inputprotocol import QuantumInputProtocol
 from .outputprotocol import OutputProtocol
 
 logger = logging.getLogger(__name__)
+
 
 class MultipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
@@ -31,7 +33,8 @@ class MultipartiteProtocol(NodeProtocol):
         node: Node,
         name: Optional[str] = None,
         source: bool = False,
-        receiver: bool = True):
+        receiver: bool = True,
+    ):
         """
         Parameters
         ----------
@@ -68,6 +71,7 @@ class MultipartiteProtocol(NodeProtocol):
         logger.debug(f"Running bipartite protocol on node {node.name}.")
         self.start_subprotocols()
 
+
 class MultipartiteOutputProtocol(OutputProtocol):
     """ Defines behviour needed when a source expects input qubits."""
 
@@ -79,31 +83,30 @@ class MultipartiteOutputProtocol(OutputProtocol):
         """Protocol for reciver."""
         # Get input
         logger.debug(f"Running Multi output protocol.")
-        
+
         """Run the protocol."""
         node = self.node
         logger.debug(f"Running multipartite protocol on node {node.name}.")
         logger.debug(f"Node: {node.name} " + f"has {self._mem_size} memory slots.")
         has_triggered = False
-        while (True): # not sure why it doesn't terminate in while(True) loop?
+        while True:  # not sure why it doesn't terminate in while(True) loop?
             if not (has_triggered):
                 self.node.subcomponents[f"qsource-{node.name}"].trigger()
                 logger.debug(f"Triggered source qsource-{node.name}.")
-                #has_triggered = True
+                # has_triggered = True
 
                 yield self.await_port_input(node.qmemory.ports["qin0"])
 
                 logger.debug("source got own qubit in memory")
 
-                self.send_signal(Signals.SUCCESS) 
-                #yield self.await_port_input(node.qmemory.ports["qin0"])
+                self.send_signal(Signals.SUCCESS)
+                # yield self.await_port_input(node.qmemory.ports["qin0"])
                 await_recieved = [
-                    self.await_timer(self._transmission_time(port_name)) 
-                    for port_name in self.node.ports 
+                    self.await_timer(self._transmission_time(port_name))
+                    for port_name in self.node.ports
                     if "qout" in port_name
                 ]
                 logger.debug("Waiting transmission time.")
                 yield reduce(operator.and_, await_recieved)
-                #yield self.await_timer(1e5) # should be max RTT (round trip time)
+                # yield self.await_timer(1e5) # should be max RTT (round trip time)
                 next(self.fidelity)
-                

@@ -7,8 +7,11 @@ from typing import List, Optional
 
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
+
 from qmulticast.utils import fidelity_from_node
+
 logger = logging.getLogger(__name__)
+
 
 class OutputProtocol(NodeProtocol):
     """Defines behaviour of node when outputting qubits"""
