@@ -1,6 +1,6 @@
 #Data and plots 
 data/*
-plots/*
+results-plots/*
 
 # Logfiles
 logs.txt

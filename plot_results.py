@@ -18,7 +18,7 @@ def parseargs() -> None:
     parser.add_argument(
         "type",
         type=str,
-        choices=["bipartite", "multipartite", "both", "bi", "multi"],
+        choices=["both", "bi", "multi"],
         help="The type of network to plot data for. bipartite, multipartite or both.",
     )
     parser.add_argument(
@@ -28,27 +28,41 @@ def parseargs() -> None:
         help="Which measure to plot data for: 'rate' of entanglement, 'fidelity' or 'time' between successes.",
     )
     parser.add_argument(
-        "--filenames",
-        "-f",
-        type=List[str],
-        default="last",
+        "--directories",
+        "-d",
+        type=str,
+        default=["last"],
+        nargs='+',
         required=False,
-        help="A list of names or patterns defining which subdirectories of 'data' to obtain data for. If not provided the most recent dataset will be used.",
+        help="A list of names or patterns defining which subdirectories of 'data' to use. \
+            If not provided the most recent dataset will be used.",
     )
     parser.add_argument(
         "--link_numbers",
         "-l",
-        type=List[int],
-        help="A list of integers giving the number of links to plot data for.",
+        type=int,
+        nargs='+',
+        required=True,
+        help="The number of links to plot data for.",
     )
     parser.add_argument(
         "--plot_analytic",
         "-a",
         type=bool,
-        defualt=False,
+        default=False,
         help="Whether to overlay plots of analytic model predictions or not.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--noise_rates",
+        "-n",
+        type=float,
+        nargs='+',
+        default=[1e7],
+        help="The noise rate(s) to plot data for."
+    )
+    args = parser.parse_args()
+    args.type += "partite" if args.type in ["bi", "multi"] else ""
+    return args
 
 
 def analytic_data(network: str) -> None:
@@ -182,7 +196,7 @@ def plot_these(
     plot_analytic: bool,
     num_nodes: List[int],
     measure: str,
-    noise_rates: List[float] = [1e7],
+    noise_rates: List[float],
 ) -> None:
     """Plot the data.
 
@@ -288,9 +302,6 @@ def plot_these(
     plt.title(title)
     plt.xlabel("Distance [km]")
     plt.ylabel(ylabel)
-    # plt.yscale("log")
-    # plt.xticks([0,1,2,3,4,5,6])
-    # ax.set_yticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     plt.legend()
     folder = "results-plots/"
     plt.savefig(fname=folder + f"data-{title}.jpg")
@@ -299,11 +310,12 @@ def plot_these(
 
 if __name__ == "__main__":
     args = parseargs()
-    data = get_all_data(folder_names=args.filenames)
+    data = get_all_data(folder_names=args.directories)
     plot_these(
         data,
         type=args.type,
         plot_analytic=args.plot_analytic,
         num_nodes=args.link_numbers,
         measure=args.measure,
+        noise_rates=args.noise_rates,
     )
