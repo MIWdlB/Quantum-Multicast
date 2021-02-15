@@ -4,28 +4,29 @@ TODO maybe make this a subclass of the Network class and build things in init.
     That'd be neater but not high prority.
 """
 
+import csv
 import logging
-from typing import Hashable, Dict, Any, Tuple
+from typing import Any, Dict, Hashable
 
 import netsquid.qubits.ketstates as ks
-from netsquid.components import QuantumChannel, QuantumProcessor, ClassicalChannel
-from netsquid.components.models.delaymodels import (FibreDelayModel,
-                                                    FixedDelayModel)
-from netsquid.components.models.qerrormodels import (DepolarNoiseModel,
-                                                     FibreLossModel)
+from netsquid.components import ClassicalChannel, QuantumChannel, QuantumProcessor
+from netsquid.components.models.delaymodels import FibreDelayModel, FixedDelayModel
+from netsquid.components.models.qerrormodels import DepolarNoiseModel
 from netsquid.components.qsource import QSource, SourceStatus
 from netsquid.nodes import Network, Node
 from netsquid.qubits.state_sampler import StateSampler
+from networkx import DiGraph
 
 from qmulticast.models.ceryslossmodel import CerysLossModel
 
-from networkx import DiGraph
-import csv
 from .functions import gen_GHZ_ket
 
 logger = logging.getLogger(__name__)
 
-def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool) -> Network:
+
+def create_network(
+    name: str, graph: DiGraph, output_file: str, bipartite: bool, noise_rate: float
+) -> Network:
     """Turn graph into netsquid network.
 
     Give each node a bipatite source for each edge, assign memory
@@ -37,6 +38,12 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
         The name of the network.
     graph : Graph
         Graph representing the desired network.
+    output_file : Pathlike
+        The file to output data about network constants to.
+    bipartite: bool
+        True for bipartite network, false for multipartite.
+    noise_rate : float
+        Constant to use for noise models.
 
     Returns
     -------
@@ -66,7 +73,7 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
         "source_noise": None,
         "fibre_delay": FibreDelayModel(),
         "fibre_loss": CerysLossModel(p_loss_init, p_loss_init),
-        "depolar_noise": DepolarNoiseModel(1e7),
+        "depolar_noise": DepolarNoiseModel(noise_rate),
     }
 
     # Set up state sampler.
@@ -75,19 +82,25 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
     else:
         n_qubits = graph.out_degree["0"] + 1
         state = gen_GHZ_ket(n_qubits)
-    
+
     state_sampler = StateSampler(state)
 
     logger.debug(f"Writing network data to file {output_file}.")
     with open(output_file, mode="a") as file:
         writer = csv.writer(file)
-        data = [graph.out_degree['0'], graph.length, p_loss_length, p_loss_init]
+        data = [
+            graph.out_degree["0"],
+            graph.length,
+            p_loss_length,
+            p_loss_init,
+            noise_rate,
+        ]
         writer.writerow(data)
 
     logger.debug("Adding unique components to nodes.")
     for node_name, node in nodes.items():
         add_processor(node, graph, models)
-        
+
         if not bipartite:
             add_mulitpartite_source(node, graph, models, state_sampler)
 
@@ -96,7 +109,7 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
     logger.debug("Adding non-unique components to nodes.")
     for node_name, node in nodes.items():
         add_connections(node, graph, models)
-        
+
         if bipartite:
             add_bipartite_sources(node, graph, models, state_sampler)
 
@@ -106,10 +119,22 @@ def create_network(name: str, graph: DiGraph, output_file: str, bipartite: bool)
 
     return network
 
-def unpack_edge_values(
-    node: str, graph: DiGraph
-) -> Tuple[Hashable, Hashable, Dict[Hashable, Any]]:
-    """Return the start, end and weight of a nodes edges."""
+
+def unpack_edge_values(node: str, graph: DiGraph) -> Dict[Hashable, Any]:
+    """Return the start, end and weight of a nodes edges.
+
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+
+    Returns
+    -------
+    Dict[Hashable, float | int ]
+        A dict of names of edge ends and weightings.
+    """
     logger.debug("Unpacking edges.")
 
     edges = {}
@@ -122,9 +147,17 @@ def unpack_edge_values(
 
     return edges
 
+
 def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
-    """ Add a processor to the node"""
-    # node_name = node.name
+    """Add a processor to the node.
+
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     logger.debug(f"Node: {node.name}.")
 
     node_connections = unpack_edge_values(node, graph)
@@ -132,7 +165,7 @@ def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
     # Names need to be strings for NetSquid object names
     node_name = str(node.name)
 
-    mem_size = len(node_connections)*2 # input and output
+    mem_size = len(node_connections) * 2  # input and output
     # Add a quantum memory to each of the nodes.
     logger.debug(f"Adding quantum memory 'qmemory-{node_name}'")
     logger.debug(f"\tsize: {mem_size}")
@@ -144,7 +177,19 @@ def add_processor(node: Node, graph: DiGraph, models: dict) -> None:
 
     node.add_subcomponent(qmemory)
 
-def add_mulitpartite_source(node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler):
+
+def add_mulitpartite_source(
+    node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler
+) -> None:
+    """Adds a single multipartite source.
+
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     node_name = node.name
     logger.debug(f"Adding QSource for node 'qsource-{node_name}'.")
     num_ports = state_sampler._num_qubits
@@ -156,19 +201,28 @@ def add_mulitpartite_source(node: Node, graph: DiGraph, models: Dict, state_samp
             "emission_delay_model": models["source_delay"],
             "emissions_noise_model": models["source_noise"],
         },
-        num_ports=num_ports, # size of GHZ state? each qubit goes to a out port
+        num_ports=num_ports,  # size of GHZ state? each qubit goes to a out port
         status=SourceStatus.EXTERNAL,
-        output_meta={"origin": node_name}
+        output_meta={"origin": node_name},
     )
     node.add_subcomponent(qsource)
 
     # add first qubit to local mem
-    qsource.ports["qout0"].connect(
-        node.subcomponents["qmemory"].ports[f"qin{0}"]
-    )
+    qsource.ports["qout0"].connect(node.subcomponents["qmemory"].ports[f"qin{0}"])
 
 
-def add_connections(node: Node, graph: DiGraph , models: Dict):
+def add_connections(node: Node, graph: DiGraph, models: Dict) -> None:
+    """Add connections to the network.
+
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    models : Dict
+        Definitions of noise and loss models.
+    """
     logger.debug(f"Node: {node.name}")
 
     network = node.supercomponent
@@ -227,7 +281,20 @@ def add_connections(node: Node, graph: DiGraph , models: Dict):
         )
 
 
-def add_bipartite_sources(node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler) -> None:
+def add_bipartite_sources(
+    node: Node, graph: DiGraph, models: Dict, state_sampler: StateSampler
+) -> None:
+    """Add a source for each connection from a bipartite source.
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    models : Dict
+        Definitions of noise and loss models.
+
+    """
     node_connections = unpack_edge_values(node, graph)
 
     for end in node_connections.keys():
@@ -250,7 +317,15 @@ def add_bipartite_sources(node: Node, graph: DiGraph, models: Dict, state_sample
         node.add_subcomponent(qsource)
 
 
-def redirect_outputs(node: Node, graph: DiGraph):
+def redirect_outputs(node: Node, graph: DiGraph) -> None:
+    """Redirect source output to connection ports.
+    Parameters
+    ----------
+    node : str
+        The name of the node.
+    graph : networkx.DiGraph
+        Graph representing the network.
+    """
     mem_position = 0
     node_output = 1
     node_connections = unpack_edge_values(node, graph)
@@ -275,11 +350,20 @@ def redirect_outputs(node: Node, graph: DiGraph):
 
         if network.source_type == "multipartite":
             logger.debug("Redirecting qsource ports.")
-            node.subcomponents[f"qsource-{node_name}"].ports[f"qout{node_output}"].forward_output(node.ports[f"qout-{edge_name}"])
+            node.subcomponents[f"qsource-{node_name}"].ports[
+                f"qout{node_output}"
+            ].forward_output(node.ports[f"qout-{edge_name}"])
             node_output += 1
 
+
 def redirect_inputs(node: Node) -> None:
-    """Redirect input ports to qmemory."""
+    """Redirect input ports to qmemory.
+
+     Parameters
+    ----------
+    node : str
+        The name of the node.
+    """
     # Now go through each node and assign the port
     # for the input from each channel.
     mem_position = 1
@@ -295,7 +379,5 @@ def redirect_inputs(node: Node) -> None:
         # qmemory of the recieving node.
         # TODO how do we assing it to an empyty memory slot.
 
-        port.forward_input(
-            node.subcomponents["qmemory"].ports[f"qin{mem_position}"]
-        )
+        port.forward_input(node.subcomponents["qmemory"].ports[f"qin{mem_position}"])
         mem_position += 2

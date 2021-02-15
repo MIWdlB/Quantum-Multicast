@@ -2,24 +2,20 @@
 import logging
 import operator
 from functools import reduce
-from qmulticast.protocols.outputprotocol import OutputProtocol
-from typing import List, Optional
+from typing import Optional
 
-from netsquid.components.component import Port
 from netsquid.components.instructions import INSTR_X
-from netsquid.components.qprogram import QuantumProgram
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
-from netsquid.protocols.protocol import Signals
-from netsquid.qubits.qubitapi import fidelity, reduced_dm
-from netsquid.util.simlog import get_loggers
 
 from qmulticast.programs import CreateGHZ
-from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
-from qmulticast.utils.functions import log_entanglement_rate
+from qmulticast.protocols.outputprotocol import OutputProtocol
+from qmulticast.utils import fidelity_from_node
+
 from .inputprotocol import QuantumInputProtocol
 
 logger = logging.getLogger(__name__)
+
 
 class BipartiteProtocol(NodeProtocol):
     """Class defining the protocol of a bipartite network node.
@@ -34,7 +30,7 @@ class BipartiteProtocol(NodeProtocol):
         name: Optional[str] = None,
         source: bool = False,
         receiver: bool = True,
-    ):
+    ) -> None:
         """Initialise the protocol wiht information about the node.
 
         Parameters
@@ -57,9 +53,11 @@ class BipartiteProtocol(NodeProtocol):
             self.add_subprotocol(BipartiteOutputProtocol(self.node))
 
         if self._input:
-            self.add_subprotocol(QuantumInputProtocol(self.node, name=f"input-{self.node.name}"))
+            self.add_subprotocol(
+                QuantumInputProtocol(self.node, name=f"input-{self.node.name}")
+            )
 
-    def run(self):
+    def run(self) -> None:
         """Run the protocol."""
         node = self.node
         logger.debug(f"Running bipartite protocol on node {node.name}.")
@@ -69,7 +67,7 @@ class BipartiteProtocol(NodeProtocol):
 class BipartiteOutputProtocol(OutputProtocol):
     """Defines behaviour of node when outputting qubits"""
 
-    def __init__(self, node: Node, name: Optional[str] = None):
+    def __init__(self, node: Node, name: Optional[str] = None) -> None:
         logger.debug("Initialising bipartite output protocol.")
         super().__init__(node=node, name=name)
         mem_ports = self.node.qmemory.ports
@@ -94,18 +92,24 @@ class BipartiteOutputProtocol(OutputProtocol):
             self.node.subcomponents[source].trigger()
             logger.debug(f"Triggered source {source}.")
 
-    def _do_corrections(self, output: dict) -> None:
-        """Correct qubits for GHZ state creation."""
+    def _do_corrections(self, prog_output: dict) -> None:
+        """Correct qubits for GHZ state creation.
+
+        Parameters
+        ---------
+        prog_output : dict
+            The output of a quantum program.
+        """
         logger.debug("Completing corrections.")
         network = self.node.supercomponent
 
-        for record, value in output.items():
+        for record, value in prog_output.items():
             if "measure" in record:
                 # If the measurement is 0 do nothing.
                 if value == [0]:
                     logger.debug("No correction for measure %s", record)
                     continue
-                
+
                 logger.debug("Correcting for measure %s", record)
                 qubit_no = int(record.lstrip("measure-"))
                 qubit = self.node.qmemory.peek(qubit_no)[0]
@@ -123,9 +127,7 @@ class BipartiteOutputProtocol(OutputProtocol):
                     continue
 
                 end_qmemory.execute_instruction(
-                    instruction = INSTR_X,
-                    qubit_mapping = qubit,
-                    physical = False
+                    instruction=INSTR_X, qubit_mapping=qubit, physical=False
                 )
 
                 logger.debug("Completed correction on node %s", end_name)
@@ -153,9 +155,6 @@ class BipartiteOutputProtocol(OutputProtocol):
             yield self.await_program(self.node.qmemory)
             logger.debug("Program complete, output %s.", prog.output)
 
-            # TODO how do we find the minimum wait time needed in a sensible way?
-            # Could await on ports using
-            #self.node.subcomponents['qsource-edge'].ports['qout1'].connected_port
             await_recieved = [
                 self.await_timer(self._transmission_time(port_name))
                 for port_name in self.node.ports
@@ -167,6 +166,5 @@ class BipartiteOutputProtocol(OutputProtocol):
 
             next(self.fidelity)
 
-            # self._send_all_delete()
             logger.debug("Clearing local memory.")
             self.node.qmemory.reset()

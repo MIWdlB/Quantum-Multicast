@@ -3,4 +3,4 @@
 from .bipartiteprotocol import BipartiteProtocol
 from .multipartiteprotocol import MultipartiteProtocol
 
-__all__ = [BipartiteProtocol,MultipartiteProtocol]
+__all__ = [BipartiteProtocol, MultipartiteProtocol]

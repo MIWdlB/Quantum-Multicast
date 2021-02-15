@@ -5,17 +5,8 @@ from functools import reduce
 from typing import List, Optional
 
 from netsquid.components.component import Port
-from netsquid.components.instructions import INSTR_X
-from netsquid.components.qprogram import QuantumProgram
 from netsquid.nodes import Node
 from netsquid.protocols import NodeProtocol
-from netsquid.protocols.protocol import Signals
-from netsquid.qubits.qubitapi import fidelity, reduced_dm
-from netsquid.util.simlog import get_loggers
-
-from qmulticast.programs import CreateGHZ
-from qmulticast.utils import fidelity_from_node, gen_GHZ_ket
-from qmulticast.utils.functions import log_entanglement_rate
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +14,16 @@ logger = logging.getLogger(__name__)
 class QuantumInputProtocol(NodeProtocol):
     """ Defines behviour needed when a source expects input qubits."""
 
-    def __init__(self, node: Node, name: Optional[str] = None):
+    def __init__(self, node: Node, name: Optional[str] = None) -> None:
+        """Initialise
+
+        Paramters
+        ---------
+        node : Node
+            The node on which the protocol should be run.
+        name : str
+            A name to assign the protocol.
+        """
         super().__init__(node=node, name=name)
         mem_positions = self.node.qmemory.num_positions
         mem_ports = self.node.qmemory.ports
@@ -34,7 +34,7 @@ class QuantumInputProtocol(NodeProtocol):
         ]
         self.add_signal(label="recieved")
 
-    def run(self):
+    def run(self) -> None:
         """Protocol for reciver."""
         # Get input
         logger.debug(f"Running Quantum Input protocol.")
@@ -55,6 +55,7 @@ class QuantumInputProtocol(NodeProtocol):
 
 class ClassicalInputPortProtocol(NodeProtocol):
     """For listening on classical ports. NOT IN USE."""
+
     def __init__(self, node: Node, port: Port, name: Optional[str] = None) -> None:
         super().__init__(node=node, name=name)
         self.port = port

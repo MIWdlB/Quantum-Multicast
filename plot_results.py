@@ -1,73 +1,118 @@
 """Plot out data from datafiles."""
+import argparse
 import csv
 import os
 import re
-from typing import Dict, List
-import numpy as np
-import matplotlib.pyplot as plt
+from pathlib import Path
 from pprint import pprint as print
-from datetime import date
+from typing import Dict, List, Tuple
 
-#Bipartite////multipartite funcs
-
-import numpy as np 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
+def parseargs() -> argparse.Namespace:
+    """Parse args for plotter."""
+    parser = argparse.ArgumentParser(description="Plot data from network simulations.")
+    parser.add_argument(
+        "type",
+        type=str,
+        choices=["both", "bi", "multi"],
+        help="The type of network to plot data for. bipartite, multipartite or both.",
+    )
+    parser.add_argument(
+        "measure",
+        type=str,
+        choices=["rate", "fidelity", "time"],
+        help="Which measure to plot data for: 'rate' of entanglement, 'fidelity' or 'time' between successes.",
+    )
+    parser.add_argument(
+        "--directories",
+        "-d",
+        type=str,
+        default=["last"],
+        nargs="+",
+        required=False,
+        help="A list of names or patterns defining which subdirectories of 'data' to use. \
+            If not provided the most recent dataset will be used.",
+    )
+    parser.add_argument(
+        "--link_numbers",
+        "-l",
+        type=int,
+        nargs="+",
+        required=True,
+        help="The number of links to plot data for.",
+    )
+    parser.add_argument(
+        "--plot_analytic",
+        "-a",
+        type=bool,
+        default=False,
+        help="Whether to overlay plots of analytic model predictions or not.",
+    )
+    parser.add_argument(
+        "--noise_rates",
+        "-n",
+        type=float,
+        nargs="+",
+        default=[1e7],
+        help="The noise rate(s) to plot data for.",
+    )
+    args = parser.parse_args()
+    args.type += "partite" if args.type in ["bi", "multi"] else ""
+    return args
 
-def analytic_data(network:str):
-    #Prob of successful generation vs distance
-    L0 = - 2 / np.log(0.1)         #attenuation length TODO does this need to changed.
-    pL = 0.2                          #prob loss on entering channel
-    d= np.linspace(0.1,2.5,100)
-    pg = (1 - pL ) *np.exp( - d / L0)        #overall prob of successful generation of 1 link
-    ps = 1                         # prob of successful LOCC 
 
+def analytic_data(network: str) -> List[Tuple[np.ndarray, np.ndarrray, int]]:
+    """Define plottable datasets for the analytic model of each network type.
 
-    #wait times bipartite
-    link1waitbp = (1 /(pg*ps))
-    r1bp = 1/ link1waitbp
+    Parameters
+    ----------
+    network : "bipartite", "multipartite"
+    """
+    # Prob of successful generation vs distance
+    L0 = -2 / np.log(0.1)  # attenuation length TODO does this need to changed.
+    pL = 0.2  # prob loss on entering channel
+    d = np.linspace(0.1, 2.5, 100)
+    pg = (1 - pL) * np.exp(-d / L0)  # overall prob of successful generation of 1 link
+    ps = 1  # prob of successful LOCC
 
-    link2waitbp = (3 /(2*pg*ps))
-    r2bp = 1/ link2waitbp
+    # wait times bipartite
+    link1waitbp = 1 / (pg * ps)
+    r1bp = 1 / link1waitbp
 
-    link4waitbp = ( 25 /( 12 * pg * ps))
-    r4bp = 1/ link4waitbp
+    link2waitbp = 3 / (2 * pg * ps)
+    r2bp = 1 / link2waitbp
 
-    #plot
-    rates = [(d, r1bp,1), (d, r2bp,2), (d, r4bp,4)]
+    link4waitbp = 25 / (12 * pg * ps)
+    r4bp = 1 / link4waitbp
+
+    # plot
+    rates = [(d, r1bp, 1), (d, r2bp, 2), (d, r4bp, 4)]
 
     ###wait time for three - ghz state
-    Wait3GHZ = (3 /(2*pg))
-    rate3GHZ = 1/ Wait3GHZ
+    Wait3GHZ = 3 / (2 * pg)
+    rate3GHZ = 1 / Wait3GHZ
 
     if network == "bipartite":
         return rates
     elif network == "multipartite":
-        return [(d, rate3GHZ,2)]
-
-    # for r in rates: 
-    #     plt.plot(d,r[0], label = r[1])
-    # plt.ylabel("Entanglement Rate (Hz)")
-    # plt.xlabel("Link Length (km)")
-    # plt.title("Entanglement rate over link length")
-    # plt.legend()
-    # plt.show()
+        return [(d, rate3GHZ, 2)]
+    else:
+        raise ValueError("network must be 'bipartite' or 'multipartite'.")
 
 
-    # plt.plot(d, rate3GHZ, label=("3-partite GHZ state"))
-    # plt.plot(d, r2bp, label=("2 bipartite links"))
-    # plt.ylabel("Entanglement Rate (Hz)")
-    # plt.xlabel("Link Length (km)")
-    # plt.title("Entanglement Rate over link length")
-    # plt.legend()
-    # plt.show()
+def get_file_data(datafile: Path) -> Dict:
+    """Extract data from CSV file.
 
-def get_file_data(datafile) -> Dict:
-    """Plots the data"""
-    
+    Parameters
+    ----------
+    datafile : Path
+        Path to the file to extract data from.
+    """
+
     data = {}
-
     with open(datafile) as file:
         reader = csv.reader(file, delimiter=",")
 
@@ -76,10 +121,11 @@ def get_file_data(datafile) -> Dict:
 
         # Header has passed read main data.
         for index, line in enumerate(reader):
-            # HOT GARBAGE GO TO BED
             if index == 0 or index == 1:
                 fields += line
-                data = {field.strip(): np.array([], dtype=np.float32) for field in fields}
+                data = {
+                    field.strip(): np.array([], dtype=np.float32) for field in fields
+                }
             elif index % 2 == 0:
                 temp += line
             elif index % 2 == 1:
@@ -87,7 +133,7 @@ def get_file_data(datafile) -> Dict:
                 for field, item in zip(fields, temp):
                     if item == "nan":
                         item = None
-                    elif item == '':
+                    elif item == "":
                         item = None
                     elif item is not None:
                         item = float(item)
@@ -96,30 +142,33 @@ def get_file_data(datafile) -> Dict:
 
     return data
 
-def get_all_data() -> Dict:
-    """Get all the data from all files."""
 
+def get_all_data(folder_names: str) -> Dict:
+    """Get all the data from all files.
+
+    Parameters
+    ----------
+    folder_names : str
+        The names or partial names of folders to extract data from.
+    """
     folders = os.listdir("data/")
+    folders.sort()
 
-    folder_times = ["22:09", "11:43:48"]
-
-    #folders = [f for f in folders if any([time in f for time in folder_times])]
-    #folder = [folders[-1]]
+    if folder_names == "last" or "last" in folder_names:
+        folders = [folders[-1]]
+    elif folder_names:
+        folders = [f for f in folders if any([time in f for time in folder_names])]
 
     data = {}
-
-    pattern = re.compile(pattern='nodes:(\d)')
 
     files = []
     for folder in folders:
         files += [folder + "/" + file for file in os.listdir("data/" + folder)]
-    print(files)
 
     for file in files:
+        pattern = re.compile(pattern="nodes:(\d)")
         num_nodes = pattern.search(file).groups()[0]
         num_nodes = int(num_nodes)
-
-        data[num_nodes] = data.get(num_nodes, {})
 
         if "bipartite" in file:
             type = "bipartite"
@@ -128,118 +177,146 @@ def get_all_data() -> Dict:
         else:
             raise NameError("Cannot parse network type from filename.")
 
-        # def find_confidence_interval(min_time,mean_time,time_std,sample_size):
-        #     delta_t = time_std*1.960/np.sqrt(sample_size) #95% confidence interval
+        data[num_nodes] = data.get(num_nodes, {})
+        data[num_nodes][type] = data[num_nodes].get(type, {})
 
-        #     upper_lim = min_time/(mean_time-delta_t) #
-        #     for i, l in enumerate(upper_lim):
-        #         upper_lim[i] = l if (mean_time[i] - delta_t[i] >= 0) else float('inf')
-
-        #     lower_lim = min_time/(mean_time+delta_t) 
-        #     rate_interval = [lower_lim,upper_lim]
-        #     return rate_interval
-        
-        # for num_nodes in data:
-        #     for type in data[num_nodes]:
-        #         set = data[num_nodes][type]
-        #         data[num_nodes][type]["rate std"] = find_confidence_interval(set["min time"], set["mean time"], set["time std"], 10000)
-
-        data[num_nodes][type] = get_file_data("data/" + file)
+        if "noise" in file:
+            pattern = re.compile(pattern="noise:(\d+)")
+            noise_rate = pattern.search(file).groups()[0]
+            noise_rate = float(noise_rate)
+            data[num_nodes][type][noise_rate] = get_file_data("data/" + file)
+        else:
+            data[num_nodes][type][1e7] = get_file_data("data/" + file)
 
     return data
 
 
-def plot_these(data: dict, type: str, num_nodes: List[int], measure: str) -> None:
+def plot_these(
+    data: dict,
+    type: str,
+    plot_analytic: bool,
+    num_nodes: List[int],
+    measure: str,
+    noise_rates: List[float],
+) -> None:
     """Plot the data.
-    
+
     Parameters
     ----------
     data : Dict
         A dict containg the data to be plotted.
 
-    type : "bipartite", "multipartite", "comparison"
+    type : "bipartite", "multipartite", "both"
         The type of network to plot data for.
+
+    plot_analytic : bool
+        Whether or not to overlay plots of analytic models.
 
     num_nodes : List[int]
         A list of node quantities to plot data for.
 
-    maesure : "fidelity" or "rate"
+    maesure : "fidelity", "rate", "time" or "noise"
         The measure to plot data for.
+
+    noise_rate : List[float], default 1e7
+        The noise rate to plot data for.
+
     """
     networks = []
-    #fig, ax = plt.subplots()
-    #ax = fig.axes([0.1, 0.1, 0.8, 0.8]) # main axes
-    type=type.lower()
-    if type in ["bipartite", "comparison"]:
+    type = type.lower()
+    if type in ["bipartite", "both"]:
         networks.append("bipartite")
-    if type in ["multipartite", "comparison"]:
+    if type in ["multipartite", "both"]:
         networks.append("multipartite")
-    
+
     if not networks:
-        raise ValueError("'type' must be 'bipartite', 'multipartite' or 'comparison'")
-    
+        raise ValueError("'type' must be 'bipartite', 'multipartite' or 'both'")
+
     for network in networks:
 
-        # for dataset in analytic_data(network):
-        #     x, y, num = dataset     
-        #     if num in num_nodes:       
-        #         plt.plot(x, y, label=f"Analytic {network} {num} nodes")
+        if plot_analytic:
+            for dataset in analytic_data(network):
+                x, y, num = dataset
+                if num in num_nodes:
+                    label = "Analytic"
+                    if len(network) != 1:
+                        label += f" {network}"
+                    if len(num_nodes) != 1:
+                        label += f", links={num}"
+
+                    plt.plot(x, y, label=label)
 
         for num in num_nodes:
-            # The data keys use 
-            #import pdb; pdb.set_trace()
-            x = data[num][network]['edge length']
+            for noise_rate in noise_rates:
+                dataset = data[num][network][noise_rate]
+                # The data keys use
+                # import pdb; pdb.set_trace()
+                x = dataset["edge length"]
 
-            if measure == "fidelity":
-                datakey = "mean fidelity"
-                stdkey = "fidelity std"
-                ylabel = "Fidelity"
-            elif measure == "rate":
-                datakey = "entanglement rate"
-                stdkey = "time std"
-                ylabel = "Entanglement Rate [Hz]"
-            elif measure == "time":
-                datakey = "mean time"
-                stdkey = "time std"
-                ylabel = "Mean Time To Success [ns]"
+                if measure == "fidelity":
+                    datakey = "mean fidelity"
+                    stdkey = "fidelity std"
+                    ylabel = "Fidelity"
+                elif measure == "rate":
+                    datakey = "entanglement rate"
+                    stdkey = "time std"
+                    ylabel = "Entanglement Rate"
+                elif measure == "time":
+                    datakey = "mean time"
+                    stdkey = "time std"
+                    ylabel = "Mean Time To Success [ns]"
 
-            else:
-                raise ValueError("'measure' must be 'fidelity' or 'rate'")
+                else:
+                    raise ValueError("'measure' must be 'fidelity' or 'rate'")
 
-            y = data[num][network][datakey]
-            std = data[num][network][stdkey]
+                y = dataset[datakey]
+                std = dataset[stdkey]
 
+                upper = []
+                lower = []
+                for yi, stdi in zip(y, std):
+                    u = yi + stdi if (yi is not None and stdi is not None) else None
+                    l = yi - stdi if (yi is not None and stdi is not None) else None
 
-            upper = []
-            lower = []
-            for yi, stdi in zip(y,std):
-                u = yi + stdi if (yi is not None and stdi is not None) else None
-                l = yi - stdi if (yi is not None and stdi is not None) else None
+                    upper.append(u)
+                    lower.append(l)
 
-                upper.append(u)
-                lower.append(l)
+                # import pdb; pdb.set_trace()
+                label = ""
+                if len(networks) != 1:
+                    label += f"{network} "
+                if len(num_nodes) != 1:
+                    label += f"links={num} "
+                if len(noise_rates) != 1:
+                    label += f"gamma={int(noise_rate):.0e}"
+                plt.plot(x, y, label=label)
+                if measure in ["time"]:
+                    plt.fill_between(x, lower, upper, alpha=0.5)
 
-            #import pdb; pdb.set_trace()
-            plt.plot(x, y, label=f"Simulated {network} {num} nodes")
-            if measure in ["time","fidelity"]:
-                plt.fill_between(x, lower, upper,alpha=0.5)
-
-            print(f"Simulated {network} {num} nodes")
-
-    title = f"{type} {datakey}".title()
+    title = f"{type} {datakey}: "
+    if len(num_nodes) == 1:
+        title += f"{num} Links "
+    if len(noise_rates) == 1:
+        title += f"gamma={int(noise_rate):.0e} "
+    title = title.title()
+    print(title)
     plt.title(title)
-    plt.xlabel("distance [km]")
+    plt.xlabel("Distance [km]")
     plt.ylabel(ylabel)
-    #plt.yscale("log")
-    #plt.xticks([0,1,2,3,4,5,6])
-    #ax.set_yticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     plt.legend()
-    plt.savefig(fname=f"data-{title}.jpg")
+    folder = "results-plots/"
+    plt.savefig(fname=folder + f"data-{title}.jpg")
     plt.show()
 
-if __name__=="__main__":
-    data = get_all_data()
-    #plot_these(data, type="comparison", num_nodes=[2,4], measure="rate")
-    plot_these(data, type="bipartite", num_nodes=[1,2], measure="time")
 
-
+if __name__ == "__main__":
+    args = parseargs()
+    data = get_all_data(folder_names=args.directories)
+    plot_these(
+        data,
+        type=args.type,
+        plot_analytic=args.plot_analytic,
+        num_nodes=args.link_numbers,
+        measure=args.measure,
+        noise_rates=args.noise_rates,
+    )
