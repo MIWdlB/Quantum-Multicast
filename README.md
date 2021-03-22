@@ -1,8 +1,4 @@
 # Quantum-Multicast
-UCLCDTDQT Group Project on multicast quantum communication.
-
-## Aim
-To find, for a given soruce node, at what rate and fidelity GHZ states can be prepared by the source node such that consitiuent qubits are shared amoung all nodes.
 
 ## Usage
 
